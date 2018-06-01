@@ -1,0 +1,24 @@
+Sub event_switch(arg As Boolean)
+Call log_write(3, "event_switch start type=" & arg)
+'*****************************************************************************
+'*プロシージャ：event_switch(arg As Boolean)
+'* イベント検知プロパティを切り替える処理
+'*
+'*
+'*****************************************************************************
+
+If arg = True Then
+   Cells(1, Range("task_id").Column) = "イベント検知" & vbCrLf & "有効"
+   Call log_write(3, "イベント検知機能が有効になりました")
+   Cells(1, Range("task_id").Column).Interior.Color = RGB(20, 248, 31)
+   Application.EnableEvents = True
+    
+
+Else
+   Application.EnableEvents = False
+   Cells(1, Range("task_id").Column) = "イベント検知" & vbCrLf & "無効"
+   Call log_write(3, "イベント検知機能が無効になりました")
+   Cells(1, Range("task_id").Column).Interior.Color = RGB(255, 0, 0)
+   End If
+
+End Sub
