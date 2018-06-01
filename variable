@@ -1,0 +1,28 @@
+'************** Public variable definition ***************
+ Public GUNT_DRAW_RESULT As Boolean
+ Public GST_CELL As String         'ガント領域開始セル
+ Public CELL_WIDTH As Double       'ガント領域セル幅
+ Public GST_COLUMN As Long         'ガントスタートカラム
+ Public GST_DATE_COLUMN As Long    'ガントスタートカラム
+ Public BASE_TIME                  '基準時刻（h)
+ Public BASE_DATE                  '基準日（m/d）
+ Public BASE_AREA                  'ガントチャート領域の表示時間
+ Public GED_COLUMN As Long         'ガント終了カラム
+ Public GED_CELL As String         'ガント終了セル
+ Public MAX_TASK_ROWS As Long      '最大行数
+ Public ONE_DAY_DOT As Double      '1分あたりのポイント
+ Public TEN_MIN_DOT As Double      '10分あたりのポイント
+ Public GST_ROW As Long            'ガントスタート行
+ Public LIMIT_TASK_ROWS As Long    'タスク数上限値
+ Public TASK_ID_COLUMN As Long     'タスクIDの列
+ Public GUNT_END_DATE              'ガント表示エリアの最終時刻
+ Public GUNT_START_DATE            'ガント表示エリアの開始時刻
+ Public GUNTSTARTDATE_COL          '開始日（予定）の列
+ Public GUNTENDDATE_COL            '開始時刻（予定）の列
+ Public GUNTERAPS_COL              '処理時間（予定）の列
+ Public GUNTSTARTRESULT_COL        '開始日（実績）の列
+ Public GUNTENDRESULT_COL          '開始時刻（実績）の列
+ Public GUNTERAPSRESULT_COL        '処理時間（実績）の列
+ Public LINE_SPAN                  '罫線の間隔
+ Public SCH_DAYS
+ Public INAZUMA_BASE_DATE          'イナズマ線の基準日
