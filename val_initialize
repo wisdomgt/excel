@@ -1,0 +1,90 @@
+Sub val_initialize()
+Call log_write(3, "val_initialize start")
+'*****************************************************************************
+'*プロシージャ：val_initialize()
+'* configの読み込みと初期値の設定
+'*
+'*
+'*****************************************************************************
+
+
+'****** Initial Value Setting from Config Sheet ******
+  TASK_ID_COLUMN = Range("task_id").Column                   'タスクIDのカラム
+  
+  
+  If ThisWorkbook.GUNT_START_DATE = "" Then
+     GUNT_START_DATE = Range("start_date").Value           'ガント描画開始日をセット
+    
+  End If
+
+  If ThisWorkbook.GUNT_END_DATE = "" Then
+       GUNT_END_DATE = GUNT_START_DATE + 30  'ガント表示エリア終了時間を計算
+  End If
+  
+  
+  SCH_DAYS = DateDiff("d", GUNT_START_DATE, GUNT_END_DATE)
+  
+  
+  GUNTSTARTDATE_COL = Range("plan_start_date").Column
+  GUNTENDDATE_COL = Range("plan_end_date").Column
+  GUNTERAPS_COL = Range("plan_eraps").Column
+  GUNTSTARTRESULT_COL = Range("result_start_date").Column
+  GUNTENDRESULT_COL = Range("result_end_date").Column
+  GUNTERAPSRESULT_COL = Range("result_eraps").Column
+  LIMIT_TASK_ROWS = Range("limit_task").Value
+  
+  
+  
+  Select Case SCH_DAYS
+  
+  
+  Case 0 To 31
+  
+   ThisWorkbook.CELL_WIDTH = 6
+   ThisWorkbook.ONE_DAY_DOT = 6
+  
+  Case 32 To 92                    '2017/7/26 Update 3ヶ月スケジュールの最大日数を92日に修正
+    ThisWorkbook.CELL_WIDTH = 2
+    ThisWorkbook.ONE_DAY_DOT = 2
+  Case 93 To 180                   '2017/7/26 Update 3ヶ月以上のスケジュールの開始日数を93日からに修正
+  
+    ThisWorkbook.CELL_WIDTH = 1
+  ThisWorkbook.ONE_DAY_DOT = 1
+  Case 181 To 366
+  
+    ThisWorkbook.CELL_WIDTH = 0.5
+  ThisWorkbook.ONE_DAY_DOT = 0.5
+  Case Else
+  
+    ThisWorkbook.CELL_WIDTH = 0.2
+  ThisWorkbook.ONE_DAY_DOT = 0.2
+  
+  End Select
+  
+    
+  If ThisWorkbook.BASE_DATE = "" Or Null Then
+    ThisWorkbook.BASE_DATE = ThisWorkbook.GUNT_START_DATE                  '基準日（m/d）の取得
+  End If
+  
+  
+  ThisWorkbook.GST_CELL = Cells(Range("gst_draw_row").Row, Range("gunt_draw_start_col").Column).Address(False, False)
+  
+  
+  ThisWorkbook.GST_ROW = Range(GST_CELL).Row                             'ガントスタートCELL行のセット
+  ThisWorkbook.GST_COLUMN = Range(GST_CELL).Column                       'ガントスタートカラムのセット
+  ThisWorkbook.GST_DATE_COLUMN = Range(GST_CELL).Column
+
+
+
+  ThisWorkbook.GED_COLUMN = SCH_DAYS + (GST_COLUMN)            'ガント終了カラムのセット
+
+  ThisWorkbook.GED_CELL = Range(Cells(GST_ROW, GED_COLUMN), Cells(GST_ROW, GED_COLUMN)).Address(False, False)
+
+
+  Call last_row_srch(last_row)
+
+  
+  ThisWorkbook.MAX_TASK_ROWS = last_row   '最大タスク数
+
+
+End Sub
