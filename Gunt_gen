@@ -1,0 +1,1117 @@
+Sub Gunt_gen()
+Call log_write(3, "Sub Gunt_gen start")
+'*****************************************************************************
+'*プロシージャ：Gunt_gen()
+'* ②ガントチャートの生成
+'*　値が入力されている行のガントチャートを描画する
+'*
+'*****************************************************************************
+Dim t As Single
+Dim search_result As Range
+Dim PRE_TASK_SHAPE As String
+Dim CURR_TASK_SHAPE As String
+Dim tname As String
+Dim SHAPE_COUNT As Integer
+
+t = Timer
+
+
+On Error GoTo ERROR_OCCURED
+
+If ActiveSheet.Range("task_id").Column > 0 Then
+
+ GoTo CONT
+
+End If
+ 
+CONT:
+ 
+Call log_write(3, "Gunt_gen() Execute")
+
+Call event_switch(False)
+
+Application.ScreenUpdating = False          '画面の更新抑止設定
+
+'Call val_initialize                         '初期設定値読み込み
+
+
+Call val_sheet_get                          'シートの内容から初期値をリセット
+
+
+'********** Shape Initialize ***********
+GuntArea_col = Range(GST_CELL).Column
+
+SHAPE_COUNT = ActiveSheet.Shapes.Count
+
+Call all_shape_delete(SHAPE_COUNT)          'ガントバーとコネクターを全て削除
+
+
+With Range(Cells(GST_ROW + 3, Range("task_id").Column + 1), Cells(ThisWorkbook.LIMIT_TASK_ROWS, GST_COLUMN - 1))
+
+.Interior.Color = RGB(255, 255, 255)
+
+
+End With
+
+Call duplicate_chk
+
+'-----------------------------------------------------------
+'イベント・タスクの数だけループ
+'-----------------------------------------------------------
+For m = GST_ROW + 3 To MAX_TASK_ROWS
+
+ '************************************************************************************************
+ 'サマリータスク行の処理
+ '************************************************************************************************
+  
+  
+  stack_start = ""
+  stack_end = ""
+
+  
+ 'タスクフラグが"s"なら
+  
+  If Cells(m, Range("flg_col").Column) = "s" Then
+         
+         avg_progress = 0 '2017/07/26 BugFix リーフタスク予定なしの場合のサマリー進捗表示誤り
+
+       '予定のセルをクリア
+        ActiveSheet.Range(Cells(m, Range("plan_start_date").Column), Cells(m, Range("plan_end_date").Column)) = ""
+        ActiveSheet.Cells(m, Range("task_progress").Column) = ""
+
+'ターゲットカラムを決定
+
+
+        target_find_flg = False
+  
+        For j = Range("task_id").Column + 1 To Range("pre_task_id").Column - 1
+  
+              If Cells(m, j) <> "" Then
+                     target_column = j
+                    target_find_flg = True
+              End If
+        Next
+  
+        If target_find_flg = True Then
+  
+            prog_sum = 0
+            prog_unit_cnt = 0
+            
+            total_days = 0     '総作業日数
+            comp_days = 0
+            remain_days = 0     '未消化日数
+            
+            For k = m + 1 To ThisWorkbook.MAX_TASK_ROWS
+                    exit_flg = False
+                    For u = Range("task_id").Column + 1 To target_column      '作業内容カラムの入力有無をチェックするループ処理
+   
+                        If Cells(k, u) <> "" And Cells(k, Range("flg_col").Column) <> "*" Then
+                        exit_flg = True
+            
+                        End If
+                    Next
+                    If exit_flg = True Then
+        
+                        Exit For
+                    End If
+      
+      
+                    If Cells(k, Range("plan_start_date").Column) <> "" And Cells(k, Range("plan_end_date").Column) <> "" Then  '開始終了日時が入力されていれば
+                        
+                        
+                        
+                        If Cells(k, Range("flg_col").Column) <> "*" And Cells(k, Range("flg_col").Column) <> "s" Then      '未消化日数と消化日数を累積
+                        
+                          total_days = total_days + Cells(k, Range("plan_eraps").Column)
+                          comp_days = comp_days + (Round(Cells(k, Range("plan_eraps").Column)) * Cells(k, Range("task_progress").Column))
+                          remain_days = remain_days + (Round(Cells(k, Range("plan_end_date").Column) - Cells(k, Range("plan_start_date").Column)) - Round(Cells(k, Range("plan_end_date").Column) - Cells(k, Range("plan_start_date").Column)) * Cells(k, Range("task_progress").Column))
+                        
+                        
+                        End If
+                        
+                   '↓ここは、サマリーのスタートエンドをスタックして置き換える
+                        
+                        If stack_start = "" Or stack_start > Cells(k, Range("plan_start_date").Column) Then
+                                stack_start = Cells(k, Range("plan_start_date").Column)
+                        End If
+        
+                        If stack_end = "" Or stack_end < Cells(k, Range("plan_end_date").Column) Then
+                                stack_end = Cells(k, Range("plan_end_date").Column)
+                        End If
+          
+                    End If
+      
+      
+                    If Cells(k, Range("task_id").Column) <> "" And Cells(k, Range("task_id").Column) <> "*" Then
+                        prog_unit_cnt = prog_unit_cnt + 1
+                        If Cells(k, Range("task_progress").Column) > 0 Then
+                                prog_sum = prog_sum + Cells(k, Range("task_progress").Column)
+                        End If
+                    End If
+      
+  
+            Next
+            ActiveSheet.Cells(m, Range("plan_start_date").Column) = stack_start
+            ActiveSheet.Cells(m, Range("plan_end_date").Column) = stack_end
+   
+            If prog_unit_cnt = 0 Then
+                avg_progress = 0
+            Else
+               ' avg_progress = prog_sum / prog_unit_cnt
+                 
+                  If total_days > 0 Then
+                 
+                    avg_progress = comp_days / total_days
+                     
+                  End If
+            End If
+   
+            ActiveSheet.Cells(m, Range("task_progress").Column) = avg_progress
+   
+   
+   
+
+
+
+
+  'MsgBox "サマリー開始:" & stack_start
+  'MsgBox "サマリー終了:" & stack_end
+   
+        End If
+ 
+ 
+   End If
+
+
+
+      '行のセパレータ罫線処理 2017/07/06 Add
+      
+   If ActiveSheet.Cells(m, Range("task_id").Column + 1) <> "" Then
+'
+              With ActiveSheet.Range(Cells(m, Range("task_id").Column - 1), Cells(m, ThisWorkbook.GED_COLUMN))
+'
+'
+                    .Borders(xlDiagonalDown).LineStyle = xlNone
+                    .Borders(xlDiagonalUp).LineStyle = xlNone
+                    With .Borders(xlEdgeLeft)
+                        .LineStyle = xlContinuous
+                        .ColorIndex = 0
+                        .TintAndShade = 0
+                        .Weight = xlThin
+                    End With
+                    With .Borders(xlEdgeTop)
+                        .LineStyle = xlContinuous
+                        .ColorIndex = 0
+                        .TintAndShade = 0
+                        .Weight = xlThin
+                    End With
+                    
+                    
+                  If m = ThisWorkbook.MAX_TASK_ROWS Then
+                  
+                    With .Borders(xlEdgeBottom)
+                        .LineStyle = xlContinuous
+                        .ColorIndex = 0
+                        .TintAndShade = 0
+                        .Weight = xlThin
+                    End With
+                  
+                  
+                    
+                  Else
+                    With .Borders(xlEdgeBottom)
+                        .LineStyle = xlContinuous
+                        .ColorIndex = 0
+                        .TintAndShade = 0
+                        .Weight = xlHairline
+                    End With
+                    
+                  End If
+                    With .Borders(xlEdgeRight)
+                        .LineStyle = xlContinuous
+                        .ColorIndex = 0
+                        .TintAndShade = 0
+                        .Weight = xlThin
+                    End With
+                    .Borders(xlInsideHorizontal).LineStyle = xlNone
+
+
+
+           End With
+              
+        
+           
+       End If
+
+
+
+  '開始終了日（予定）が入力されていれば日数を計算
+
+  If Cells(m, GUNTSTARTDATE_COL) = "" Or Cells(m, GUNTENDDATE_COL) = "" Then   '*
+        
+        Cells(m, GUNTERAPS_COL) = ""
+        Call log_write(2, "開始終了日（予定）が入力されていません(" & m & " 行目)")
+        
+        If Range("err_view_flg").Value = "On" Then
+        
+          Range(Cells(m, GUNTSTARTDATE_COL), Cells(m, GUNTENDDATE_COL)).Interior.Color = RGB(255, 204, 204)
+        
+        End If
+  Else                                                                                                                                                      '*
+        task_start_date = Cells(m, GUNTSTARTDATE_COL)
+        task_end_date = Cells(m, GUNTENDDATE_COL)
+   
+        eraps_work = Round(task_end_date - task_start_date) + 1
+   
+        If eraps_work = 0 Then                                                                          '**
+      
+            plan_eraps_cal = 1
+        Else                                                                                            '**
+            If eraps_work > 0 Then                                                              '***
+                plan_eraps_cal = Round(task_end_date - task_start_date) + 1
+            Else                                                                                '***
+                Call log_write(1, "開始終了日（予定）の相関エラー(" & rowno & " 行目)")
+                plan_eraps_cal = 0
+                If Range("err_view_flg").Value = "On" Then
+                    Range(Cells(m, GUNTSTARTDATE_COL), Cells(m, GUNTENDDATE_COL)).Interior.Color = RGB(255, 204, 204)
+                End If
+            End If                                                                              '***
+        End If                                                                                          '**
+        
+        Cells(m, GUNTERAPS_COL) = plan_eraps_cal
+   
+  End If                                                                                                                                                    '*
+ 
+  '開始終了日（実績）が入力されていれば日数を計算
+ 
+  If Cells(m, GUNTSTARTRESULT_COL) = "" Or Cells(m, GUNTENDRESULT_COL) = "" Then
+     
+     Cells(m, GUNTERAPSRESULT_COL) = ""
+     Call log_write(2, "開始終了日（実績）が入力されていません(" & m & " 行目)")
+     If Range("err_view_flg").Value = "On" Then
+      Range(Cells(m, GUNTSTARTRESULT_COL), Cells(m, GUNTENDRESULT_COL)).Interior.Color = RGB(255, 204, 204)
+     End If
+  Else
+   
+     task_start_date = Cells(m, GUNTSTARTRESULT_COL)
+     task_end_date = Cells(m, GUNTENDRESULT_COL)
+   
+     eraps_work = Round(task_end_date - task_start_date)
+   
+     If eraps_work = 0 Then
+         result_eraps_cal = 1
+     Else
+         If eraps_work > 0 Then
+               result_eraps_cal = Round(task_end_date - task_start_date) + 1
+         Else
+               Call log_write(1, "開始終了日（実績）の相関エラー(" & m & " 行目)")
+               result_eraps_cal = 0
+               If Range("err_view_flg").Value = "On" Then
+                Range(Cells(m, GUNTSTARTRESULT_COL), Cells(m, GUNTENDRESULT_COL)).Interior.Color = RGB(255, 204, 204)
+               End If
+         End If
+     End If
+     
+     Cells(m, GUNTERAPSRESULT_COL) = result_eraps_cal
+  
+  
+ End If
+ 
+ 
+'If (Cells(m, Range("task_id").Column) <> "") Then                                                                       '*タスクIDが入力されているなら
+If (Cells(m, Range("task_id").Column) <> "") And Cells(m, Range("flg_col").Column) <> "s" Then                          '*タスクIDが入力されているなら
+   
+   
+   
+   If Cells(m, GUNTERAPS_COL) > 0 Then                                                          '**日数（予定）が0より大きければ
+         
+   '------------------------------------------------------------------------------------------------------------------
+   
+       
+   GuntArea_col = Range(GST_CELL).Column
+   Call log_write(3, "plan_gunt_gen(" & m & ") Execute")
+
+   
+   task_start_date = Cells(m, GUNTSTARTDATE_COL)
+   task_end_date = Cells(m, GUNTENDDATE_COL)
+   
+   
+   
+   For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+       head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+   
+       If task_start_date = head_date Then
+          left_pos = Cells(m, p).Left
+          Exit For
+       End If
+   
+   Next
+   
+   For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+            head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+   
+            If task_end_date = head_date Then
+                right_pos = ActiveSheet.Cells(m, p + 1).Left
+                Exit For
+                
+            End If
+   
+   Next
+   
+   
+   
+   
+   
+   top_pos = ActiveSheet.Cells(m, GuntArea_col).Top                                            'ガントバーの開始位置（行の位置）をセットMsgBox (Top_pos)
+     
+   GUNT_HEIGHT = Rows(m).RowHeight / 2                                                         'ガントバーの高さをセット
+   
+     If task_start_date < GUNT_END_DATE And task_end_date >= GUNT_START_DATE Then               '***ガント表示エリア内に表示できる場合のみガントバーを表示
+        
+        If task_end_date > GUNT_END_DATE Then                                                  '****ガント表示エリアの終端を超えてるなら
+            Call log_write(2, "終了日がチャート表示領域を超えています(" & m & " 行目)")
+           
+            If task_start_date < GUNT_START_DATE Then                                          '*****ガント表示エリアより前に開始しているなら
+                  Call log_write(2, "開始日がチャート表示領域より前です(" & m & " 行目)")
+                  
+                  left_pos = ActiveSheet.Cells(m, GuntArea_col).Left
+                 ' ERAPS_TIME = Round(GUNT_END_DATE - GUNT_START_DATE)
+            Else                                                                               '*****
+                  
+                  right_pos = (ActiveSheet.Cells(m, ThisWorkbook.GED_COLUMN + 1).Left)
+                  
+                 'ERAPS_TIME = Round(GUNT_END_DATE - task_start_date)              '処理時間をガント表示エリアの終端で打ち切る
+            End If                                                                             '*****
+         
+         Else                                                                                  '****
+
+           If task_start_date < GUNT_START_DATE Then                                           '*****ガント表示エリアより前に開始しているなら
+              Call log_write(2, "開始日がチャート表示領域より前です(" & m & " 行目)")
+              left_pos = ActiveSheet.Cells(m, GuntArea_col).Left
+             ' ERAPS_TIME = Round(task_end_date - GUNT_START_DATE)
+          ' Else                                                                                '*****
+              
+          '    ERAPS_TIME = Cells(m, GUNTERAPS_COL)
+           End If                                                                              '*****
+         
+         End If                                                                                '****ガント表示エリアの終端を超えてるなら(終了)
+ 
+ 
+         G_width = right_pos - left_pos                                          'ガントバーの長さをセット
+         
+         
+         
+         'ガントバーを描画　Shape (Shape type,Left,Top,width,hight)
+'        With ActiveSheet.Shapes.AddShape(msoShapeRectangle, left_pos, top_pos, G_width, GUNT_HEIGHT)
+        'With ActiveSheet.Shapes.AddShape(msoShapeChevron, left_pos, top_pos, G_width, GUNT_HEIGHT)
+        'With ActiveSheet.Shapes.AddShape(msoShapePentagon, left_pos + 0.5, top_pos, G_width - 0.5, GUNT_HEIGHT)
+
+
+        '**************************************************************************
+        '   マイルストーンをプロット
+         
+         If Cells(m, Range("flg_col").Column) = "*" Then
+           CURR_TASK_SHAPE = "mile_stone_" & Cells(m, Range("task_id").Column) 'マイルストーンに名前を付加
+           
+           Top_adjust = Rows(m).RowHeight / 4
+           top_pos = ActiveSheet.Cells(m, GuntArea_col).Top + Top_adjust
+           'With ActiveSheet.Shapes.AddShape(msoShape5pointStar, left_pos, top_pos, GUNT_HEIGHT, GUNT_HEIGHT)
+           With ActiveSheet.Shapes.AddShape(msoShapeIsoscelesTriangle, left_pos - GUNT_HEIGHT / 2, top_pos, GUNT_HEIGHT, GUNT_HEIGHT)
+           
+                    .Line.Visible = msoTrue
+                    .Line.ForeColor.RGB = RGB(0, 153, 255)
+                    .Line.Transparency = 0
+                    .Line.Visible = msoTrue
+                    '.Fill.Patterned msoPattern5Percent
+                    .Fill.ForeColor.RGB = RGB(0, 153, 255)
+                    .Fill.BackColor.RGB = RGB(102, 204, 255)
+                    .Fill.BackColor.TintAndShade = 0
+                    .Fill.BackColor.Brightness = 0
+                    .Fill.Transparency = 0.7
+                    .Name = CURR_TASK_SHAPE
+            
+           End With
+         
+         
+         Else
+         
+         
+              If Cells(m, Range("flg_col").Column) = "" Then
+                                      
+                        
+                        If Cells(m, Range("task_id").Column).Interior.Color <> RGB(255, 255, 255) Then
+                                      
+                            rgbcolor = Cells(m, Range("task_id").Column).Interior.Color
+                   
+                        Else
+                       
+                            rgbcolor = RGB(0, 153, 255)
+                   
+                        End If
+                   
+                   
+                   
+                
+                End If
+                
+                
+            
+         
+         
+         
+         
+         
+           CURR_TASK_SHAPE = "task_plan_" & Cells(m, TASK_ID_COLUMN) 'ガントバーに名前を付加
+           With ActiveSheet.Shapes.AddShape(msoShapePentagon, left_pos + 0.5, top_pos, G_width - 0.5, GUNT_HEIGHT)
+                    .Line.Visible = msoTrue
+                    .Line.ForeColor.RGB = RGB(127, 127, 127)
+                    .Line.Transparency = 0
+                    .Line.Visible = msoTrue
+                    .Fill.Patterned msoPattern5Percent
+                  '  .Fill.ForeColor.RGB = RGB(0, 153, 255)
+                  '  .Fill.BackColor.RGB = RGB(124, 139, 252)
+                    
+                    .Fill.ForeColor.RGB = rgbcolor
+                    .Fill.BackColor.RGB = rgbcolor
+                    
+                    .Fill.BackColor.TintAndShade = 0
+                    .Fill.BackColor.Brightness = 0
+                    .Fill.Transparency = 0.4
+                    .Name = CURR_TASK_SHAPE
+            
+           End With
+         End If
+         
+                    
+          taskitem_text = ""
+          For q = Range("task_id").Column + 1 To Range("pre_task_id").Column - 1
+          
+             taskitem_text = taskitem_text & ActiveSheet.Cells(m, q)
+          
+          Next
+          
+          If Cells(m, Range("flg_col").Column) = "*" Then
+          
+             taskitem_text = taskitem_text & " " & Format(Cells(m, Range("plan_start_date").Column), "m/d")
+             ActiveSheet.Shapes(CURR_TASK_SHAPE).TextFrame.Characters.Font.Color = RGB(0, 0, 0)
+          Else
+             ActiveSheet.Shapes(CURR_TASK_SHAPE).TextFrame.Characters.Font.Color = RGB(100, 100, 100)
+          End If
+          
+          
+          
+          
+          
+         '  ActiveSheet.Shapes(CURR_TASK_SHAPE).TextFrame.AutoSize = False
+         '  ActiveSheet.Shapes(CURR_TASK_SHAPE).TextFrame.Characters.Font.Color = RGB(100, 100, 100)
+           ActiveSheet.Shapes(CURR_TASK_SHAPE).TextFrame.HorizontalOverflow = xlOartHorizontalOverflowOverflow
+           ActiveSheet.Shapes(CURR_TASK_SHAPE).TextFrame.VerticalOverflow = xlOartHorizontalOverflowOverflow
+           ActiveSheet.Shapes(CURR_TASK_SHAPE).TextFrame.Characters.Text = taskitem_text
+           
+       
+
+
+
+      Else
+        Call log_write(2, "ガントチャート表示領域外の日付が入力されています(" & m & "行目)")
+        If Range("err_view_flg").Value = "On" Then
+          Range(Cells(m, GUNTSTARTDATE_COL), Cells(m, GUNTENDDATE_COL + 1)).Interior.Color = RGB(255, 204, 204)
+        End If
+      End If                                                            '***
+    
+  
+  
+'***********************************************************************************************************************************************************************
+'***********************************************************************************************************************************************************************
+
+  End If                                                           '**
+  '進捗率が入力されている行の進捗バーを描画する
+  
+  If Cells(m, Range("task_progress").Column) <> "" Then
+  
+  
+     If Cells(m, Range("task_progress").Column) = 1 Then
+         
+       ' Cells(m, Range("task_status").Column) = "完了"
+        
+        Range(Cells(m, Range("task_id").Column + 1), Cells(m, ThisWorkbook.GST_COLUMN - 1)).Interior.Color = RGB(192, 192, 192)
+        
+     Else
+        Cells(m, Range("task_status").Column) = "実行中"
+       
+        
+    
+     End If
+  
+     tname = "task_plan_" & Cells(m, Range("task_id").Column)
+    
+     
+     
+     If srch_task(tname) = True Then
+     
+            gst_date = Cells(3, Range("gunt_draw_start_col").Column)
+  
+            tst_date = Cells(m, Range("plan_start_date").Column)
+     
+     
+            If tst_date < gst_date Then  'タスクの開始日がチャートの開始日より小さい場合
+            
+                progress_day = Cells(m, Range("plan_eraps").Column) * Cells(m, Range("task_progress").Column)  '進捗日数を求める
+                progress_right_day = CDate(Format(tst_date + progress_day, "yyyy/mm/dd"))        '進捗バーの終端日を求める
+     
+                If progress_right_day >= gst_date Then  '進捗終端がチャート開始日より大きい
+            
+                'widthを設定
+     
+                    For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+                        head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+
+                        If progress_right_day = head_date Then
+                          '  right_pos = ActiveSheet.Cells(m, p + 1).Left
+                             right_pos = ActiveSheet.Cells(m, p).Left
+                            Exit For
+
+                        End If
+         
+                    Next
+            
+                    progress_width = right_pos - Cells(m, Range("gunt_draw_start_col").Column).Left
+               
+                    progress_pos_left = ActiveSheet.Shapes(tname).Left   'サマリーガントバーの開始位置
+     
+                
+     
+                    Top_adjust = Rows(m).RowHeight / 2
+            
+                    top_pos = ActiveSheet.Cells(m, Range("gunt_draw_start_col").Column).Top + Top_adjust + 0.25
+  
+                    GUNT_HEIGHT = Rows(m).RowHeight / 4
+  
+                    With ActiveSheet.Shapes.AddShape(msoShapeRectangle, progress_pos_left, top_pos, progress_width, GUNT_HEIGHT)
+                        .Line.Visible = msoTrue
+                        .Line.ForeColor.RGB = RGB(0, 255, 0)
+                        .Line.Transparency = 0
+                        .Line.Visible = msoTrue
+                        .Fill.Patterned msoPatternNarrowVertical
+                        .Fill.ForeColor.RGB = RGB(0, 255, 0)
+                        .Fill.BackColor.ObjectThemeColor = msoThemeColorBackground1
+                        .Fill.BackColor.TintAndShade = 0
+                        .Fill.BackColor.Brightness = 0
+                        .Fill.Transparency = 0.4
+                        .Name = "task_progress_" & Cells(m, Range("task_id").Column)
+                    End With
+            
+               End If
+            
+            
+            Else
+            
+                progress_pos_left = ActiveSheet.Shapes(tname).Left   '進捗ガントバーの開始位置
+     
+                progress_width = ActiveSheet.Shapes(tname).Width
+  
+                ppro = Cells(m, Range("task_progress").Column)
+     
+                progress_width = progress_width * ppro
+     
+                Top_adjust = Rows(m).RowHeight / 2
+            
+                top_pos = ActiveSheet.Cells(m, Range("gunt_draw_start_col").Column).Top + Top_adjust + 0.25
+  
+                GUNT_HEIGHT = Rows(m).RowHeight / 4
+  
+                With ActiveSheet.Shapes.AddShape(msoShapeRectangle, progress_pos_left, top_pos, progress_width, GUNT_HEIGHT)
+                    .Line.Visible = msoTrue
+                    .Line.ForeColor.RGB = RGB(0, 255, 0)
+                    .Line.Transparency = 0
+                    .Line.Visible = msoTrue
+                    .Fill.Patterned msoPatternNarrowVertical
+                    .Fill.ForeColor.RGB = RGB(0, 255, 0)
+                    .Fill.BackColor.ObjectThemeColor = msoThemeColorBackground1
+                    .Fill.BackColor.TintAndShade = 0
+                    .Fill.BackColor.Brightness = 0
+                    .Fill.Transparency = 0.4
+                    .Name = "task_progress_" & Cells(m, Range("task_id").Column)
+
+                End With
+           End If
+    End If
+  Else
+  
+   
+    Cells(m, Range("task_status").Column) = ""
+  
+  
+  End If
+  
+  
+  
+  
+  '実績時間が計算されていれば実績ガントバーを作成
+      
+If Cells(m, GUNTERAPSRESULT_COL) > 0 Then                               '**
+
+  '---------------------------------------------------------------------------------------------------------------------------------------
+ GuntArea_col = Range(GST_CELL).Column
+ Call log_write(3, "result_gunt_gen(" & m & ") Execute")
+
+ 'タスク開始時刻とガントチャート開始時刻の差を求める（ガントバーの始点を決めるため）
+
+   task_start_result = Cells(m, GUNTSTARTRESULT_COL)
+   task_end_result = Cells(m, GUNTENDRESULT_COL)
+
+
+  'ガントバーの開始位置（日付の位置）をセット
+   For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+       head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+
+       If task_start_result = head_date Then
+          left_pos = Cells(m, p).Left
+          Exit For
+       End If
+   Next
+
+  'ガントバーの終了位置（日付の位置）をセット
+   For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+            head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+
+            If task_end_result = head_date Then
+                right_pos = ActiveSheet.Cells(m, p + 1).Left
+                Exit For
+
+            End If
+   Next
+
+  '   diff_date = Round(task_start_result - GUNT_START_DATE)
+
+   '  left_pos = ActiveSheet.Cells(m, GuntArea_col).Left + (diff_date * ONE_DAY_DOT)
+
+     'ガントバーの開始位置（行の位置）をセットMsgBox (Top_pos)
+     Top_adjust = (Rows(m).RowHeight / 4) * 3
+     top_pos = ActiveSheet.Cells(m, GuntArea_col).Top + Top_adjust + 0.25
+
+     'ガント表示エリア内に表示できる場合のみガントバーを表示
+     If task_start_result < GUNT_END_DATE And task_end_result > GUNT_START_DATE Then                          '***
+
+
+     GUNT_HEIGHT = Rows(m).RowHeight / 8                                'ガントバー（実績）の太さはセルの高さの1/6
+         If task_end_result > GUNT_END_DATE Then                        '****ガント表示エリアの終端を超えてるなら
+            Call log_write(2, "終了日がチャート表示領域を超えています(" & m & " 行目)")
+
+            If task_start_result < GUNT_START_DATE Then                 '*****ガント表示エリアより前に開始しているなら
+
+              Call log_write(2, "開始日がチャート表示領域より前です(" & m & " 行目)")
+
+              left_pos = ActiveSheet.Cells(m, GuntArea_col).Left
+             ' ERAPS_TIME = Round(GUNT_END_DATE - GUNT_START_DATE)
+
+            Else                                                        '*****
+
+             ' ERAPS_TIME = Round(GUNT_END_DATE - task_start_result) '処理時間をガント表示エリアの終端で打ち切る
+
+            End If                                                      '*****
+         Else                                                           '****
+
+           If task_start_result < GUNT_START_DATE Then                  '*****ガント表示エリアより前に開始しているなら
+
+              Call log_write(2, "開始日がチャート表示領域より前です(" & m & " 行目)")
+
+              left_pos = ActiveSheet.Cells(m, GuntArea_col).Left
+            '  ERAPS_TIME = Round(task_end_result - GUNT_START_DATE)
+           Else                                                         '*****
+
+            '  ERAPS_TIME = Cells(m, GUNTERAPSRESULT_COL)
+
+           End If                                                       '*****
+         End If                                                         '****
+
+         G_width = right_pos - left_pos
+
+        CURR_TASK_SHAPE = "task_rslt_" & Cells(m, TASK_ID_COLUMN) 'ガントバーに名前を付加
+
+
+         'ガントバーを描画　Shape (Shape type,Left,Top,width,hight)
+
+         With ActiveSheet.Shapes.AddShape(msoShapeRectangle, left_pos, top_pos, G_width, GUNT_HEIGHT)
+
+                    .Line.Visible = msoTrue
+                    .Line.ForeColor.RGB = RGB(226, 107, 10)
+                    .Line.Transparency = 0
+                    .Line.Visible = msoTrue
+                   ' .Fill.Patterned msoPatternNarrowVertical
+                  '  .Fill.Patterned msoPattern90Percent
+                    .Fill.ForeColor.RGB = RGB(218, 150, 148)
+                    .Fill.BackColor.RGB = RGB(230, 100, 100)
+                    .Fill.BackColor.TintAndShade = 0
+                    .Fill.BackColor.Brightness = 0
+                    .Fill.Transparency = 0.1
+                    .Name = CURR_TASK_SHAPE
+
+          End With
+   Else
+    Call log_write(2, "ガントチャート表示領域外の日付が入力されています(" & m & "行目)")
+    If Range("err_view_flg").Value = "On" Then
+       Range(Cells(m, GUNTSTARTRESULT_COL), Cells(m, GUNTENDRESULT_COL + 1)).Interior.Color = RGB(255, 204, 204)
+    End If
+   End If                                                               '***
+
+
+
+  End If                                                                '**
+Else    '*
+
+ Call log_write(3, "タスクIDが未入力かサマリータスクです(" & m & "行目)")
+ If Range("err_view_flg").Value = "On" Then
+  Cells(m, TASK_ID_COLUMN).Interior.Color = RGB(255, 204, 204)
+ End If
+ 
+
+ 
+'*****************************************************************************************************************
+'-----------------------------サマリータスクを描画----------------------------------------------------------------
+'
+ 
+  If Cells(m, Range("flg_col").Column) = "s" Then         'サマリータスクかどうかの判定
+  
+
+  If Cells(m, GUNTERAPS_COL) > 0 Then  '**　　　進捗率があるかどうかの判定
+        GuntArea_col = Range(GST_CELL).Column
+        Call log_write(3, "plan_gunt_gen(" & m & ") Execute")
+
+
+        task_start_date = Cells(m, GUNTSTARTDATE_COL)
+        task_end_date = Cells(m, GUNTENDDATE_COL)
+
+
+
+        For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+            head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+
+            If task_start_date = head_date Then
+                left_pos = Cells(m, p).Left
+                Exit For
+            End If
+
+        Next
+
+        For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+            head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+
+            If task_end_date = head_date Then
+                right_pos = ActiveSheet.Cells(m, p + 1).Left
+                Exit For
+
+            End If
+
+        Next
+ 
+ 
+         line_adjust = Rows(m).RowHeight / 2                                                         'ガントバーの高さをセット
+
+         top_pos = ActiveSheet.Cells(m, GuntArea_col).Top + line_adjust                              'ガントバーの開始位置（行の位置）をセットMsgBox (Top_pos)
+
+
+     
+     
+     If task_start_date < GUNT_END_DATE And task_end_date > GUNT_START_DATE Then               '***ガント表示エリア内に表示できる場合のみガントバーを表示
+
+        If task_end_date > GUNT_END_DATE Then                                                  '****ガント表示エリアの終端を超えてるなら
+            Call log_write(2, "終了日がチャート表示領域を超えています(" & m & " 行目)")
+
+            If task_start_date < GUNT_START_DATE Then                                          '*****ガント表示エリアより前に開始しているなら
+                  Call log_write(2, "開始日がチャート表示領域より前です(" & m & " 行目)")
+
+                  left_pos = ActiveSheet.Cells(m, GuntArea_col).Left
+                  right_pos = (ActiveSheet.Cells(m, ThisWorkbook.GED_COLUMN + 1).Left)
+            Else                                                                               '*****
+
+                  right_pos = (ActiveSheet.Cells(m, ThisWorkbook.GED_COLUMN + 1).Left)         '処理時間をガント表示エリアの終端で打ち切る
+                  
+            End If                                                                             '*****
+
+        Else                                                                                  '****
+
+           If task_start_date < GUNT_START_DATE Then                                           '*****ガント表示エリアより前に開始しているなら
+              Call log_write(2, "開始日がチャート表示領域より前です(" & m & " 行目)")
+              left_pos = ActiveSheet.Cells(m, GuntArea_col).Left
+           End If                                                                              '*****
+
+        End If                                                                                '****ガント表示エリアの終端を超えてるなら(終了)
+
+        
+
+         CURR_TASK_SHAPE = "summary_task_" & m 'ガントバーに名前を付加
+
+         'ガントバーを描画　Shape (Shape type,Left,Top,width,hight)
+        With ActiveSheet.Shapes.AddLine(left_pos + 0.5, top_pos, right_pos, top_pos)
+
+                        .Line.Weight = 3#
+                        .Line.DashStyle = msoLineSolid
+                        .Line.BeginArrowheadStyle = msoArrowheadDiamond
+                        .Line.EndArrowheadStyle = msoArrowheadDiamond
+                        '.Line.EndArrowheadStyle = msoArrowheadStealth
+                        .Line.ForeColor.RGB = RGB(0, 0, 0)
+                        .Line.ForeColor.TintAndShade = 0
+                        .Line.ForeColor.Brightness = 0
+                        .Name = CURR_TASK_SHAPE
+
+
+          End With
+          
+          taskitem_text = ""
+          For q = Range("task_id").Column + 1 To Range("pre_task_id").Column - 1
+          
+             taskitem_text = taskitem_text & ActiveSheet.Cells(m, q)
+          
+          Next
+          
+          
+          text_length = Len(taskitem_text)
+          
+          
+          
+         ' prot_top = ActiveSheet.Cells(m, 1).Top
+          prot_top = top_pos - 12
+          
+          prot_left = (left_pos + ((right_pos - left_pos) / 2)) - ((text_length * 5) / 2)
+          
+          
+          
+
+                   sum_shape_textname = "sum_text_" & m
+          
+          
+          With ActiveSheet.Shapes.AddShape(msoShapeRectangle, prot_left, prot_top, 10, 8)
+
+                    .Line.Visible = msoFalse
+                  ' .Line.ForeColor.RGB = RGB(255, 255, 255)
+                  ' .Line.Transparency = 0
+                  ' .Fill.Patterned msoPatternNarrowVertical
+                  ' .Fill.Patterned msoPattern90Percent
+                    .Fill.ForeColor.RGB = RGB(255, 255, 255)
+                    .Fill.BackColor.RGB = RGB(255, 255, 255)
+                    .Fill.BackColor.TintAndShade = 0
+                    .Fill.BackColor.Brightness = 0
+                '    .Fill.Transparency = 0.1
+                   .Name = sum_shape_textname
+
+          End With
+          
+          ActiveSheet.Shapes(sum_shape_textname).TextFrame.Characters.Text = taskitem_text
+                 
+             
+             ActiveSheet.Shapes(sum_shape_textname).TextFrame.Characters.Font.Color = RGB(0, 0, 0)
+          
+          
+           ActiveSheet.Shapes(sum_shape_textname).TextFrame.AutoSize = True
+         '  ActiveSheet.Shapes(sum_shape_textname).TextFrame.Characters.Font.Color = RGB(100, 100, 100)
+           ActiveSheet.Shapes(sum_shape_textname).TextFrame.HorizontalOverflow = xlOartHorizontalOverflowOverflow
+           ActiveSheet.Shapes(sum_shape_textname).TextFrame.VerticalOverflow = xlOartHorizontalOverflowOverflow
+          
+           
+      
+        
+          
+
+    End If '***
+
+
+   If Cells(m, Range("task_progress").Column) > 0 Then  '***
+  
+  
+     If Cells(m, Range("task_progress").Column) = 1 Then '****
+         
+      '  Cells(m, Range("task_status").Column) = "完了"
+        
+        Range(Cells(m, Range("task_id").Column + 1), Cells(m, ThisWorkbook.GST_COLUMN - 1)).Interior.Color = RGB(192, 192, 192)
+        
+     Else                                                 '****
+        Cells(m, Range("task_status").Column) = "実行中"
+       
+        
+    
+     End If                                            '****
+  
+     tname = "summary_task_" & m
+     
+     '****************************************************************************************************
+     'サマリータスクの進捗バー
+     '****************************************************************************************************
+     
+     If srch_task(tname) = True Then                               '****
+     
+        gst_date = Cells(3, Range("gunt_draw_start_col").Column)    'ガントエリアの開始日
+  
+        tst_date = Cells(m, Range("plan_start_date").Column)        'タスクの開始日
+  
+  
+        If tst_date < gst_date Then  'タスクの開始日がチャートの開始日より小さい場合
+            
+           progress_day = Cells(m, Range("plan_eraps").Column) * Cells(m, Range("task_progress").Column)  '進捗日数を求める
+      '      progress_day = Cells(m, Range("plan_eraps").Column) - remain_days  '進捗日数を求める  仕様変更 2017/06/02
+             
+            
+            
+            progress_right_day = CDate(Format(tst_date + progress_day, "yyyy/mm/dd"))        '進捗バーの終端日を求める
+     
+            If progress_right_day >= gst_date Then  '進捗終端がチャート開始日より大きい
+            
+            'widthを設定
+     
+                For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+                    head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+
+                    If progress_right_day = head_date Then
+                        right_pos = ActiveSheet.Cells(m, p + 1).Left
+                        Exit For
+
+                    End If
+         
+                Next
+     
+                progress_width = right_pos - Cells(m, Range("gunt_draw_start_col").Column).Left
+               
+                progress_pos_left = ActiveSheet.Shapes(tname).Left   'サマリーガントバーの開始位置
+     
+                
+     
+                Top_adjust = Rows(m).RowHeight / 2
+            
+                top_pos = ActiveSheet.Cells(m, Range("gunt_draw_start_col").Column).Top + Top_adjust + 0.25
+  
+                GUNT_HEIGHT = Rows(m).RowHeight / 4
+  
+                With ActiveSheet.Shapes.AddShape(msoShapeRectangle, progress_pos_left, top_pos, progress_width, GUNT_HEIGHT)
+                        .Line.Visible = msoTrue
+                        .Line.ForeColor.RGB = RGB(0, 255, 0)
+                        .Line.Transparency = 0
+                        .Line.Visible = msoTrue
+                        .Fill.Patterned msoPatternNarrowVertical
+                        .Fill.ForeColor.RGB = RGB(0, 255, 0)
+                        .Fill.BackColor.ObjectThemeColor = msoThemeColorBackground1
+                        .Fill.BackColor.TintAndShade = 0
+                        .Fill.BackColor.Brightness = 0
+                        .Fill.Transparency = 0.4
+                        .Name = "summary_progress_" & m
+                End With
+            
+            
+            
+            End If
+     
+        Else
+        
+               ' ppro = Cells(m, Range("task_progress").Column)
+                 progress_width = ActiveSheet.Shapes(tname).Width
+               ' progress_width = progress_width * ppro
+             
+             
+                
+                progre_sum = comp_days / total_days
+             
+            '    progress_width = progress_width * ppro
+                
+                progress_width = progress_width * progre_sum
+             
+             
+                progress_day = Cells(m, Range("plan_eraps").Column) - remain_days  '進捗日数を求める  仕様変更 2017/06/02
+             
+                progress_right_day = CDate(Format(tst_date + progress_day, "yyyy/mm/dd"))        '進捗バーの終端日を求める
+     
+               'If progress_right_day >= gst_date Then  '進捗終端がチャート開始日より大きい
+            
+            'widthを設定
+     
+                For p = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+                    head_date = ActiveSheet.Cells(ThisWorkbook.GST_ROW + 1, p)
+
+                    If progress_right_day = head_date Then
+                        right_pos = ActiveSheet.Cells(m, p + 1).Left
+                        Exit For
+
+                    End If
+         
+                Next
+     
+             '   progress_width = right_pos - Cells(m, Range("gunt_draw_start_col").Column).Left
+        
+        
+                    
+                progress_pos_left = ActiveSheet.Shapes(tname).Left   'サマリーガントバーの開始位置
+     
+                
+     
+                Top_adjust = Rows(m).RowHeight / 2
+            
+                top_pos = ActiveSheet.Cells(m, Range("gunt_draw_start_col").Column).Top + Top_adjust + 0.25
+  
+                GUNT_HEIGHT = Rows(m).RowHeight / 4
+  
+                With ActiveSheet.Shapes.AddShape(msoShapeRectangle, progress_pos_left, top_pos, progress_width, GUNT_HEIGHT)
+                        .Line.Visible = msoTrue
+                        .Line.ForeColor.RGB = RGB(0, 255, 0)
+                        .Line.Transparency = 0
+                        .Line.Visible = msoTrue
+                        .Fill.Patterned msoPatternNarrowVertical
+                        .Fill.ForeColor.RGB = RGB(0, 255, 0)
+                        .Fill.BackColor.ObjectThemeColor = msoThemeColorBackground1
+                        .Fill.BackColor.TintAndShade = 0
+                        .Fill.BackColor.Brightness = 0
+                        .Fill.Transparency = 0.4
+                        .Name = "summary_progress_" & m
+                End With
+        End If
+    End If                                                          '****
+  Else                                 '***
+  
+   
+    Cells(m, Range("task_status").Column) = ""
+  
+  
+  End If '***
+
+
+Else
+  Cells(m, Range("task_status").Column) = ""
+
+  End If '   **サマリー描画END
+  
+End If
+  
+End If                                                                  '*
+ 
+Next
+
+
+
+
+Application.ScreenUpdating = True
+
+If Range("inazuma_flg") = "On" Then
+
+   ThisWorkbook.inazuma
+
+End If
+
+
+
+
+
+Debug.Print "guntgen eraps" & Format((Timer - t), "0.0000") & "秒"
+Call event_switch(True)
+'Application.EnableEvents = True
+'ActiveSheet.Cells(1, 1).Select
+
+ThisWorkbook.GUNT_DRAW_RESULT = True
+ 
+
+Exit Sub
+
+ERROR_OCCURED:
+Call log_write(1, "例外エラーが発生しました")
+MsgBox ("例外エラーが発生しました")
+ThisWorkbook.GUNT_DRAW_RESULT = False
+
+Call event_switch(True)
+ Err.Clear
+End Sub
