@@ -1,0 +1,38 @@
+Sub Guntsheet_add(ByVal control As IRibbonControl)
+Dim irc As IRibbonControl
+
+
+'***********************************************************************************
+'* Procedure：Guntsheet_add()
+'*  処理内容：新規シート作成ボタンを押したときの処理
+'*  引き数  ：
+'*
+'***********************************************************************************
+Call log_write(3, "chartgen_button_Click() Execute")
+
+Call base_copy                      '雛形シートのコピー
+
+Call val_initialize
+
+
+UserForm2.Show
+ If UserForm2.SET_FLG = False Then
+    Unload UserForm2
+    
+    Application.DisplayAlerts = False
+        ThisWorkbook.ActiveSheet.Delete
+    Application.DisplayAlerts = True
+    
+    Exit Sub
+ End If
+ Unload UserForm2
+ 
+ Call val_initialize
+
+ Call Area_Gen
+
+
+'シートのフォーマット(列、罫線他）
+
+
+End Sub
