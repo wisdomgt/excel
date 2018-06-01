@@ -1,0 +1,75 @@
+'
+Private Sub Worksheet_Change(ByVal target As Range)
+'*****************************************************************************
+'*プロシージャ：Worksheet_Change(ByVal Target As Range)
+'*
+'* ワークシートのセル値が修正されたことを検知するために使用
+'* 開始終了日時、先行タスク、タスクNoが修正された場合の処理を記述
+'*
+'*****************************************************************************
+ Call ThisWorkbook.log_write(3, "Worksheet_Change start")
+  On Error GoTo CHANGE_ERROR
+  
+  
+  Call ThisWorkbook.val_initialize                   '初期設定値の読み込み処理
+  
+  
+
+  '変更チェック対象レンジを指定
+  
+
+  CHK_RNG_ADDR_ID_START = Cells(ThisWorkbook.GST_ROW, Range("task_id").Column).Address
+  CHK_RNG_ADDR_ID_END = Cells(ThisWorkbook.GST_ROW + ThisWorkbook.LIMIT_TASK_ROWS - 2, Range("task_id").Column).Address
+  
+  CHK_RNG_ADDR_PTASK_START = Cells(ThisWorkbook.GST_ROW, Range("pre_task_id").Column).Address
+  CHK_RNG_ADDR_PTASK_END = Cells(ThisWorkbook.GST_ROW + ThisWorkbook.LIMIT_TASK_ROWS - 2, Range("pre_task_id").Column).Address
+ 
+  CHK_RNG_ADDR_PLAN_START = Cells(ThisWorkbook.GST_ROW, Range("plan_start_date").Column).Address
+  CHK_RNG_ADDR_PLAN_END = Cells(ThisWorkbook.GST_ROW + ThisWorkbook.LIMIT_TASK_ROWS - 2, Range("plan_end_date").Column).Address
+  
+  
+  CHK_RNG_ADDR_RESULT_START = Cells(ThisWorkbook.GST_ROW, Range("result_start_date").Column).Address
+  CHK_RNG_ADDR_RESULT_END = Cells(ThisWorkbook.GST_ROW + ThisWorkbook.LIMIT_TASK_ROWS - 2, Range("result_end_date").Column).Address
+    
+  CHK_RNG_ADDR_PROGRESS_START = Cells(ThisWorkbook.GST_ROW, Range("task_progress").Column).Address
+  CHK_RNG_ADDR_PROGRESS_END = Cells(ThisWorkbook.GST_ROW + ThisWorkbook.LIMIT_TASK_ROWS - 2, Range("task_progress").Column).Address
+  
+
+If Not Intersect(target, Range(CHK_RNG_ADDR_ID_START, CHK_RNG_ADDR_ID_END)) Is Nothing Then                                 'タスクIDに修正があったか？
+      Call ThisWorkbook.Gunt_gen
+      Call ThisWorkbook.pre_task_connect
+      
+Else
+        If Not Intersect(target, Range(CHK_RNG_ADDR_PTASK_START, CHK_RNG_ADDR_PTASK_END)) Is Nothing Then                   '先行タスクに修正があったか？
+            Call ThisWorkbook.Gunt_gen
+            Call ThisWorkbook.pre_task_connect
+        Else
+              If Not Intersect(target, Range(CHK_RNG_ADDR_PLAN_START, CHK_RNG_ADDR_PLAN_END)) Is Nothing Then               '開始終了時刻（予定）に修正があったか？
+                    Call ThisWorkbook.Gunt_gen
+                    Call ThisWorkbook.pre_task_connect
+              Else
+                      If Not Intersect(target, Range(CHK_RNG_ADDR_RESULT_START, CHK_RNG_ADDR_RESULT_END)) Is Nothing Then       '開始終了時刻（実績）に修正があったか？
+                            Call ThisWorkbook.Gunt_gen
+                            Call ThisWorkbook.pre_task_connect
+                      Else
+                            If Not Intersect(target, Range(CHK_RNG_ADDR_PROGRESS_START, CHK_RNG_ADDR_PROGRESS_END)) Is Nothing Then       '進捗に修正があったか？
+                                Call ThisWorkbook.Gunt_gen
+                                Call ThisWorkbook.pre_task_connect
+                            End If
+                      
+                      
+                      End If
+                      
+              End If
+       End If
+End If
+
+Exit Sub
+
+
+CHANGE_ERROR:
+
+Err.Clear
+Call ThisWorkbook.log_write(1, "例外エラーが発生しました")
+
+End Sub
