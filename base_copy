@@ -1,0 +1,21 @@
+Sub base_copy()
+'***********************************************************************************
+'* Procedure：base_copy()
+'*  処理内容：チャート雛形シートをコピーする
+'*  引き数  ：
+'*
+'***********************************************************************************
+Dim wsheet As Object
+
+Call log_write(3, "base_copy() Execute")
+Application.ScreenUpdating = False
+
+ThisWorkbook.Worksheets("Base_sheet").Visible = True
+ThisWorkbook.Worksheets("Base_sheet").Copy AFTER:=ThisWorkbook.Worksheets("Base_sheet")         'ワークシートのコピー
+nsn = "gunt_" & Format(Now(), "yyyyMMddhhmmss")
+ThisWorkbook.ActiveSheet.Name = nsn
+ThisWorkbook.Worksheets("Base_sheet").Visible = False
+ThisWorkbook.Worksheets(nsn).Visible = True
+ThisWorkbook.Worksheets(nsn).Select
+Application.ScreenUpdating = True
+End Sub
