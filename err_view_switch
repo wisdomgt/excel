@@ -1,0 +1,28 @@
+Sub err_view_switch(ByVal control As IRibbonControl)
+
+'*****************************************************************************
+'*プロシージャ：err_view_switch
+'* 入力不備のあるセルに色をつける機能を切り換える処理
+'*引数：なし
+'*
+'*****************************************************************************
+
+
+Call log_write(3, "err_view_switch start")
+
+If Range("err_view_flg").Text = "On" Then
+   Range("err_view_flg") = "Off"
+Else
+   Range("err_view_flg") = "On"
+End If
+
+Call ThisWorkbook.val_initialize
+
+
+Call ThisWorkbook.Gunt_gen
+
+Call ThisWorkbook.pre_task_connect
+
+
+
+End Sub
