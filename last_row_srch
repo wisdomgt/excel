@@ -1,0 +1,24 @@
+Sub last_row_srch(last_row)
+Call log_write(3, "last_row_srch start")
+'*****************************************************************************
+'*プロシージャ：last_row_srch(last_row)
+'* 値が入力されている最終セルを検索し最終行を返す
+'*
+'*
+'*****************************************************************************
+
+last_row = 4
+
+For i = 1 To GST_COLUMN - 1
+   col_last_row = Cells(Rows.Count, i).End(xlUp).Row
+   If last_row < col_last_row Then
+      last_row = col_last_row
+   End If
+Next
+
+If last_row = 4 Then
+   last_row = GST_ROW + Range("max_task").Value
+   
+End If
+
+End Sub
