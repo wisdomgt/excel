@@ -1,0 +1,520 @@
+Sub inazuma()
+'*****************************************************************************
+'*プロシージャ：inazuma
+'* 稲妻線を引く
+'*引数：なし
+'*
+'*****************************************************************************
+  Call log_write(3, "inazuma start")
+
+  
+  Dim tname As String
+  Dim spname As String
+  
+'初期値設定
+
+
+ Call ThisWorkbook.val_initialize
+   
+  
+  ThisWorkbook.GST_CELL = Cells(Range("gst_draw_row").Row, Range("gunt_draw_start_col").Column).Address(False, False)
+  
+  ThisWorkbook.GST_ROW = Range(GST_CELL).Row
+  
+  ThisWorkbook.GED_COLUMN = Cells(ThisWorkbook.GST_ROW + 1, ActiveSheet.Columns.Count).End(xlToLeft).Column
+   
+   
+'稲妻線の基準日設定
+
+If ThisWorkbook.INAZUMA_BASE_DATE = "" Then
+   If Range("inazuma_date") = "" Then
+   
+      ThisWorkbook.INAZUMA_BASE_DATE = Format(Now(), "yyyy/m/d")
+   Else
+      ThisWorkbook.INAZUMA_BASE_DATE = Range("inazuma_date")
+   
+   End If
+
+End If
+
+curr_day = CDate(Format(ThisWorkbook.INAZUMA_BASE_DATE, "yyyy/m/d"))
+inazuma_base_col = ""
+   
+For y = ThisWorkbook.GST_COLUMN To ThisWorkbook.GED_COLUMN
+    If curr_day = Cells(ThisWorkbook.GST_ROW + 1, y) Then
+          inazuma_base_col = y
+          
+          Exit For
+    End If
+Next
+
+'基準日がチャートにない場合はExit
+
+If inazuma_base_col = "" Then
+   
+   Exit Sub
+End If
+
+
+Application.ScreenUpdating = False
+
+Call inazuma_delete      '稲妻線の削除
+
+   
+'タスクの数だけループ
+   
+For x = ThisWorkbook.GST_ROW + 3 To ThisWorkbook.MAX_TASK_ROWS
+      If Cells(x, Range("task_id").Column) <> "" And Cells(x, Range("flg_col").Column) <> "s" Then
+      
+            If Cells(x, Range("flg_col").Column) = "*" Then 'マイルストーンの場合は凸凹なし
+                                    '***************** 稲妻線基準
+            
+                                    inazuma_left_pos = Cells(x, inazuma_base_col).Left
+                                    inazuma_left_top = Cells(x, inazuma_base_col).Top
+         
+                                    inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                                    inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+         
+                                 With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                    .Line.Weight = 2#
+                                    .Line.DashStyle = msoLineSolid
+                                    .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                    .Line.ForeColor.TintAndShade = 0
+                                    .Line.ForeColor.Brightness = 0
+                                    .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                                End With
+            Else
+                tname = "task_progress_" & Cells(x, Range("task_id").Column)
+                  
+                If ThisWorkbook.srch_task(tname) Then   '********進捗バーがあるなら
+         
+                    If Cells(x, Range("task_progress").Column) < 1 Then  '進捗が100%じゃなければ凹る
+            
+                    '***************** 稲妻線上側
+            
+                        inazuma_left_pos = ActiveSheet.Shapes(tname).Width + ActiveSheet.Shapes(tname).Left
+                        inazuma_left_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight / 2)
+         
+                        inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                        inazuma_right_top = Cells(x, inazuma_base_col).Top
+         
+                        With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                            .Line.Weight = 2#
+                            .Line.DashStyle = msoLineSolid
+                            .Line.ForeColor.RGB = RGB(255, 0, 0)
+                            .Line.ForeColor.TintAndShade = 0
+                            .Line.ForeColor.Brightness = 0
+                            .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                        End With
+  
+                        '***************** 稲妻線下側
+                        inazuma_left_pos = ActiveSheet.Shapes(tname).Width + ActiveSheet.Shapes(tname).Left
+                        inazuma_left_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight / 2)
+         
+                        inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                        inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+                        With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                .Line.Weight = 2#
+                                .Line.DashStyle = msoLineSolid
+                                .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                .Line.ForeColor.TintAndShade = 0
+                                .Line.ForeColor.Brightness = 0
+                                .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                        End With
+                        If inazuma_left_pos < inazuma_right_pos Then
+                            With Range(Cells(x, Range("task_id").Column + 1), Cells(x, ThisWorkbook.GST_COLUMN - 1)).Interior
+                                 .Color = RGB(255, 204, 204)
+          
+                            End With
+                        End If
+                    Else   '進捗バーがあって100%のとき
+              
+                            If Cells(x, Range("plan_end_date").Column) < curr_day Then '稲妻基準日以前で完了しているなら凹らない
+                  
+                                    '***************** 稲妻線基準
+            
+                                    inazuma_left_pos = Cells(x, inazuma_base_col).Left
+                                    inazuma_left_top = Cells(x, inazuma_base_col).Top
+         
+                                    inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                                    inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+         
+                                 With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                    .Line.Weight = 2#
+                                    .Line.DashStyle = msoLineSolid
+                                    .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                    .Line.ForeColor.TintAndShade = 0
+                                    .Line.ForeColor.Brightness = 0
+                                    .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                                End With
+               
+                            Else '進捗100%だけど基準日より先の日付のときは凸る
+               
+                                    '***************** 稲妻線上側
+            
+                                     inazuma_left_pos = ActiveSheet.Shapes(tname).Width + ActiveSheet.Shapes(tname).Left
+                                     inazuma_left_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight / 2)
+         
+                                     inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                                     inazuma_right_top = Cells(x, inazuma_base_col).Top
+         
+                                    With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                        .Line.Weight = 2#
+                                        .Line.DashStyle = msoLineSolid
+                                        .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                        .Line.ForeColor.TintAndShade = 0
+                                        .Line.ForeColor.Brightness = 0
+                                        .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                                    End With
+  
+                                    '***************** 稲妻線下側
+                                    inazuma_left_pos = ActiveSheet.Shapes(tname).Width + ActiveSheet.Shapes(tname).Left
+                                    inazuma_left_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight / 2)
+         
+                                    inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                                    inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+                                    With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                        .Line.Weight = 2#
+                                        .Line.DashStyle = msoLineSolid
+                                        .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                        .Line.ForeColor.TintAndShade = 0
+                                        .Line.ForeColor.Brightness = 0
+                                        .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                                    End With
+              
+                            End If
+           
+                    End If
+  
+            Else     '通常タスクで進捗バーがない場合
+         
+                     If Cells(x, Range("task_progress").Column) = 1 Or Cells(x, Range("plan_start_date").Column) > curr_day Or Cells(x, Range("plan_eraps").Column) = "" Then            '100%かまだ開始していない場合は凹凸はつけない
+             
+                            '***************** 稲妻線基準
+            
+                            inazuma_left_pos = Cells(x, inazuma_base_col).Left
+                            inazuma_left_top = Cells(x, inazuma_base_col).Top
+         
+                            inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                            inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+         
+                            With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                    .Line.Weight = 2#
+                                    .Line.DashStyle = msoLineSolid
+                                    .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                    .Line.ForeColor.TintAndShade = 0
+                                    .Line.ForeColor.Brightness = 0
+                                    .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                            End With
+             
+             
+                      Else    '進捗バーがないけど完了していない場合はチャート開始位置へ凹る
+              
+                            '***************** 稲妻線上側
+                            
+                            
+                              spname = "task_plan_" & Cells(x, Range("task_id").Column)
+                              
+                              If ThisWorkbook.srch_task(spname) Then
+                              
+                                 inazuma_left_pos = ActiveSheet.Shapes(spname).Left
+                              Else
+                                 inazuma_left_pos = Cells(x, ThisWorkbook.GST_COLUMN).Left
+                              End If
+                              
+                              
+                              inazuma_left_top = Cells(x, ThisWorkbook.GST_COLUMN).Top + (Rows(x).RowHeight / 2)
+         
+                              inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                              inazuma_right_top = Cells(x, inazuma_base_col).Top
+         
+                            With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                .Line.Weight = 2#
+                                .Line.DashStyle = msoLineSolid
+                                .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                .Line.ForeColor.TintAndShade = 0
+                                .Line.ForeColor.Brightness = 0
+                                .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                            End With
+  
+                            '***************** 稲妻線下側
+                            
+                            
+                            'inazuma_left_pos = Cells(x, ThisWorkbook.GST_COLUMN).Left
+                            'inazuma_left_pos = ActiveSheet.Shapes(spname).Left
+                            
+                            inazuma_left_top = Cells(x, ThisWorkbook.GST_COLUMN).Top + (Rows(x).RowHeight / 2)
+         
+                            inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                            inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+                            With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                              .Line.Weight = 2#
+                              .Line.DashStyle = msoLineSolid
+                              .Line.ForeColor.RGB = RGB(255, 0, 0)
+                              .Line.ForeColor.TintAndShade = 0
+                              .Line.ForeColor.Brightness = 0
+                              .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                            End With
+                           
+                            With Range(Cells(x, Range("task_id").Column + 1), Cells(x, ThisWorkbook.GST_COLUMN - 1)).Interior
+                                 .Color = RGB(255, 204, 204)
+          
+                            End With
+             
+                End If
+             
+         
+         
+         
+             End If
+    
+    
+    
+         End If
+      Else   'サマリータスクの場合
+      
+             tname = "summary_progress_" & x
+         
+         
+                  
+                If ThisWorkbook.srch_task(tname) Then   '********進捗バーがあるなら
+         
+         
+                    If Cells(x, Range("task_progress").Column) < 1 Then  '進捗が100%じゃなければ凹る
+         
+         
+            
+                    '***************** 稲妻線上側
+            
+                        inazuma_left_pos = ActiveSheet.Shapes(tname).Width + ActiveSheet.Shapes(tname).Left
+                        inazuma_left_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight / 2)
+         
+                        inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                        inazuma_right_top = Cells(x, inazuma_base_col).Top
+         
+                        With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                            .Line.Weight = 2#
+                            .Line.DashStyle = msoLineSolid
+                            .Line.ForeColor.RGB = RGB(255, 0, 0)
+                            .Line.ForeColor.TintAndShade = 0
+                            .Line.ForeColor.Brightness = 0
+                            .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                        End With
+  
+                        '***************** 稲妻線下側
+                        inazuma_left_pos = ActiveSheet.Shapes(tname).Width + ActiveSheet.Shapes(tname).Left
+                        inazuma_left_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight / 2)
+         
+                        inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                        inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+                        With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                .Line.Weight = 2#
+                                .Line.DashStyle = msoLineSolid
+                                .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                .Line.ForeColor.TintAndShade = 0
+                                .Line.ForeColor.Brightness = 0
+                                .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                        End With
+                        If inazuma_left_pos < inazuma_right_pos Then
+                            With Range(Cells(x, Range("task_id").Column + 1), Cells(x, ThisWorkbook.GST_COLUMN - 1)).Interior
+                                 .Color = RGB(255, 204, 204)
+          
+                            End With
+                        End If
+           
+                    Else   '進捗バーがあって100%のとき
+              
+                            If Cells(x, Range("plan_end_date").Column) < curr_day Then '稲妻基準日以前で完了しているなら凹らない
+                  
+                                    '***************** 稲妻線基準
+            
+                                    inazuma_left_pos = Cells(x, inazuma_base_col).Left
+                                    inazuma_left_top = Cells(x, inazuma_base_col).Top
+         
+                                    inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                                    inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+         
+                                 With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                    .Line.Weight = 2#
+                                    .Line.DashStyle = msoLineSolid
+                                    .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                    .Line.ForeColor.TintAndShade = 0
+                                    .Line.ForeColor.Brightness = 0
+                                    .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                                End With
+               
+               
+               
+                            Else '進捗100%だけど基準日より先の日付のときは凸る
+               
+                                    '***************** 稲妻線上側
+            
+                                     inazuma_left_pos = ActiveSheet.Shapes(tname).Width + ActiveSheet.Shapes(tname).Left
+                                     inazuma_left_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight / 2)
+         
+                                     inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                                     inazuma_right_top = Cells(x, inazuma_base_col).Top
+         
+                                    With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                        .Line.Weight = 2#
+                                        .Line.DashStyle = msoLineSolid
+                                        .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                        .Line.ForeColor.TintAndShade = 0
+                                        .Line.ForeColor.Brightness = 0
+                                        .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                                    End With
+  
+                                    '***************** 稲妻線下側
+                                    inazuma_left_pos = ActiveSheet.Shapes(tname).Width + ActiveSheet.Shapes(tname).Left
+                                    inazuma_left_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight / 2)
+         
+                                    inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                                    inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+                                    With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                        .Line.Weight = 2#
+                                        .Line.DashStyle = msoLineSolid
+                                        .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                        .Line.ForeColor.TintAndShade = 0
+                                        .Line.ForeColor.Brightness = 0
+                                        .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                                    End With
+               
+              
+                            End If
+           
+                    End If
+  
+            Else     '進捗バーがない場合
+         
+'                     If Cells(x, Range("task_progress").Column) = 1 Or Cells(x, Range("plan_start_date").Column) > curr_day Or Cells(x, Range("result_eraps").Column) = "" Then               '100%かまだ開始していない場合は凹凸はつけない
+                     If Cells(x, Range("task_progress").Column) = 1 Or Cells(x, Range("plan_start_date").Column) > curr_day Or Cells(x, Range("plan_eraps").Column) = "" Then              '100%かまだ開始していない場合は凹凸はつけない
+             
+                            '***************** 稲妻線基準
+            
+                            inazuma_left_pos = Cells(x, inazuma_base_col).Left
+                            inazuma_left_top = Cells(x, inazuma_base_col).Top
+         
+                            inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                            inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+         
+                            With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                    .Line.Weight = 2#
+                                    .Line.DashStyle = msoLineSolid
+                                    .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                    .Line.ForeColor.TintAndShade = 0
+                                    .Line.ForeColor.Brightness = 0
+                                    .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                            End With
+             
+             
+                    Else    '進捗バーがないけど完了していない場合はガントバー開始位置へ凹る
+              
+                            '***************** 稲妻線上側
+            
+            
+                              spname = "summary_task_" & x
+            
+            
+                              If ThisWorkbook.srch_task(spname) Then
+                              
+                                 inazuma_left_pos = ActiveSheet.Shapes(spname).Left
+                              Else
+                                 inazuma_left_pos = Cells(x, ThisWorkbook.GST_COLUMN).Left
+                              End If
+            
+            
+            
+                              
+                            
+                              
+                              inazuma_left_top = Cells(x, ThisWorkbook.GST_COLUMN).Top + (Rows(x).RowHeight / 2)
+         
+                              inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                              inazuma_right_top = Cells(x, inazuma_base_col).Top
+         
+                            With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                                .Line.Weight = 2#
+                                .Line.DashStyle = msoLineSolid
+                                .Line.ForeColor.RGB = RGB(255, 0, 0)
+                                .Line.ForeColor.TintAndShade = 0
+                                .Line.ForeColor.Brightness = 0
+                                .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                            End With
+  
+                           '***************** 稲妻線下側
+                           ' inazuma_left_pos = Cells(x, ThisWorkbook.GST_COLUMN).Left
+                            
+                           '  inazuma_left_pos = ActiveSheet.Shapes(spname).Left
+                            inazuma_left_top = Cells(x, ThisWorkbook.GST_COLUMN).Top + (Rows(x).RowHeight / 2)
+         
+                            inazuma_right_pos = Cells(x, inazuma_base_col).Left
+                            inazuma_right_top = Cells(x, inazuma_base_col).Top + (Rows(x).RowHeight)
+                            With ActiveSheet.Shapes.AddLine(inazuma_left_pos, inazuma_left_top, inazuma_right_pos, inazuma_right_top)
+
+                              .Line.Weight = 2#
+                              .Line.DashStyle = msoLineSolid
+                              .Line.ForeColor.RGB = RGB(255, 0, 0)
+                              .Line.ForeColor.TintAndShade = 0
+                              .Line.ForeColor.Brightness = 0
+                              .Name = "INAZUMA_UP_" & Cells(x, TASK_ID_COLUMN)
+
+                            End With
+             
+                            With Range(Cells(x, Range("task_id").Column + 1), Cells(x, ThisWorkbook.GST_COLUMN - 1)).Interior
+                                 .Color = RGB(255, 204, 204)
+          
+                            End With
+             
+             
+                End If
+             
+         
+         
+         
+             End If
+      
+       
+      
+      End If
+
+    Next
+
+
+
+   Application.ScreenUpdating = True
+   
+   Call log_write(3, "inazuma end")
+
+End Sub
