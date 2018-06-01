@@ -1,0 +1,51 @@
+Sub enable_event(ByVal control As IRibbonControl)
+Call log_write(3, "enable_event start")
+'*****************************************************************************
+'*プロシージャ：enable_event()
+'* イベント検知切換えボタンが押されたときの処理
+'*
+'*
+'*****************************************************************************
+
+On Error GoTo ERROR_OCCURED
+
+If ActiveSheet.Range("task_id").Column > 0 Then
+
+ GoTo CONT
+
+End If
+
+ 
+CONT:
+
+
+If Application.EnableEvents = True Then
+   Application.EnableEvents = False
+   Call log_write(3, "イベント検知機能が無効になりました")
+   Cells(1, Range("task_id").Column) = "イベント検知" & vbCrLf & "無効"
+   Cells(1, Range("task_id").Column).Interior.Color = RGB(255, 0, 0)
+  
+  
+  ' MsgBox ("イベント検知を無効にしました")
+  
+Else
+   
+  
+   Call log_write(3, "イベント検知機能が有効になりました")
+   Cells(1, Range("task_id").Column) = "イベント検知" & vbCrLf & "有効"
+   Cells(1, Range("task_id").Column).Interior.Color = RGB(20, 248, 31)
+   Application.EnableEvents = True
+  
+ 
+ '  MsgBox ("イベント検知を有効にしました")
+   
+End If
+Exit Sub
+
+ERROR_OCCURED:
+ Err.Clear
+Call log_write(1, "例外エラーが発生しました")
+ 
+MsgBox "例外エラーが発生しました"
+
+End Sub
