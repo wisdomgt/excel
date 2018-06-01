@@ -1,0 +1,43 @@
+Sub inazuma_add(ByVal control As IRibbonControl)
+
+
+
+'***********************************************************************************
+'* Procedure：Guntsheet_add()
+'*  処理内容：新規シート作成ボタンを押したときの処理
+'*  引き数  ：
+'*
+'***********************************************************************************
+Call log_write(3, "inazuma_add() Execute")
+
+   
+ If Range("inazuma_flg") = "On" Then
+ 
+    Range("inazuma_flg") = "Off"
+    
+    Application.ScreenUpdating = False
+    Call inazuma_delete      '稲妻線の削除
+    Application.ScreenUpdating = True
+ Else
+ 
+  Range("inazuma_flg") = "On"
+  
+  
+  UserForm3.Show
+ If UserForm3.SET_FLG = False Then
+    Unload UserForm3
+      
+    Exit Sub
+ End If
+ Unload UserForm3
+  
+ Call ThisWorkbook.inazuma
+ 
+End If
+
+
+ 
+ 
+
+
+End Sub
