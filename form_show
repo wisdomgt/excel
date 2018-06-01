@@ -1,0 +1,14 @@
+Sub form_show(ByVal control As IRibbonControl)
+Call log_write(3, "form_show start")
+'*****************************************************************************
+'*プロシージャ：form_show
+'* ログビュー(UserForm)を表示する処理
+'*引数：なし
+'*
+'*****************************************************************************
+     
+     UserForm1.Show (0)
+     Call formpos_adjust
+     Call log_write(3, "ログを表示しました")
+
+End Sub
