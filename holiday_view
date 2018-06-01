@@ -1,0 +1,177 @@
+Sub holiday_view()
+
+'*****************************************************************************
+'*Function holiday_chk
+'*
+'* 祝祭日チェック
+'*
+'*
+'*****************************************************************************
+
+
+
+Dim arr(1 To 10, 1 To 21) As String
+Dim yydata As Integer
+Dim setdate As Date
+
+Erase arr
+
+
+
+
+For i = 1 To 10
+
+    yydata = Val(i + 2015)
+
+    
+    '元日
+    arr(i, 1) = LTrim(Str(yydata)) & "/1/1"
+    '成人の日
+    setdate = getholiday(yydata, 1, vbMonday, 2)
+    arr(i, 2) = Format(setdate, "yyyy/m/d")
+    '建国記念の日
+    arr(i, 3) = LTrim(Str(yydata)) & "/2/11"
+    '春分の日
+    Select Case yydata
+        Case 2016 To 2017
+          arr(i, 4) = LTrim(Str(yydata)) & "/3/20"
+        Case 2018 To 2019
+          arr(i, 4) = LTrim(Str(yydata)) & "/3/21"
+        Case 2020 To 2021
+          arr(i, 4) = LTrim(Str(yydata)) & "/3/20"
+        Case 2022 To 2023
+         arr(i, 4) = LTrim(Str(yydata)) & "/3/21"
+        Case 2023
+         arr(i, 4) = LTrim(Str(yydata)) & "/3/21"
+        Case 2024 To 2026
+         arr(i, 4) = LTrim(Str(yydata)) & "/3/20"
+    End Select
+    '昭和の日
+    arr(i, 5) = LTrim(Str(yydata)) & "/4/29"
+    '憲法記念日
+    arr(i, 6) = LTrim(Str(yydata)) & "/5/3"
+    'みどりの日
+    arr(i, 7) = LTrim(Str(yydata)) & "/5/4"
+    'こどもの日
+    arr(i, 8) = LTrim(Str(yydata)) & "/5/5"
+    '海の日
+    setdate = getholiday(Val(yydata), 7, vbMonday, 3)
+    arr(i, 9) = Format(setdate, "yyyy/m/d")
+    '山の日
+    arr(i, 10) = LTrim(Str(yydata)) & "/8/11"
+    '敬老の日
+    setdate = getholiday(Val(yydata), 9, vbMonday, 3)
+    arr(i, 11) = Format(setdate, "yyyy/m/d")
+    '秋分の日
+    Select Case yydata
+        Case 2016
+          arr(i, 12) = LTrim(Str(yydata)) & "/9/22"
+        Case 2017 To 2019
+          arr(i, 12) = LTrim(Str(yydata)) & "/9/23"
+        Case 2020
+          arr(i, 12) = LTrim(Str(yydata)) & "/9/22"
+        Case 2021 To 2023
+         arr(i, 12) = LTrim(Str(yydata)) & "/9/23"
+        Case 2024
+         arr(i, 12) = LTrim(Str(yydata)) & "/9/22"
+        Case 2025 To 2026
+         arr(i, 12) = LTrim(Str(yydata)) & "/9/23"
+    End Select
+    
+    '体育の日
+    setdate = getholiday(Val(yydata), 10, vbMonday, 2)
+    arr(i, 13) = Format(setdate, "yyyy/m/d")
+    arr(i, 14) = LTrim(Str(yydata)) & "/11/3"
+    arr(i, 15) = LTrim(Str(yydata)) & "/11/23"
+    arr(i, 16) = LTrim(Str(yydata)) & "/12/23"
+    arr(i, 17) = LTrim(Str(yydata)) & "/1/2"
+    arr(i, 18) = LTrim(Str(yydata)) & "/1/3"
+    arr(i, 19) = LTrim(Str(yydata)) & "/12/29"
+    arr(i, 20) = LTrim(Str(yydata)) & "/12/30"
+    arr(i, 21) = LTrim(Str(yydata)) & "/12/31"
+    
+    
+  
+Next
+
+
+
+
+
+
+last_col = Cells(ThisWorkbook.GST_ROW + 1, ActiveSheet.Columns.Count).End(xlToLeft).Column
+
+
+Application.ScreenUpdating = False
+
+For E = Range("task_status").Column + 1 To last_col
+
+
+   strdate = Cells(ThisWorkbook.GST_ROW + 1, E)
+   
+
+ If Weekday(Cells(ThisWorkbook.GST_ROW + 1, E)) = 1 Then
+ 
+     With Range(Cells(ThisWorkbook.GST_ROW + 3, E), Cells(ThisWorkbook.MAX_TASK_ROWS, E)).Interior
+     
+        .Color = RGB(255, 217, 242)
+     
+     
+     End With
+ 
+ End If
+ If Weekday(Cells(ThisWorkbook.GST_ROW + 1, E)) = 7 Then
+ 
+     With Range(Cells(ThisWorkbook.GST_ROW + 3, E), Cells(ThisWorkbook.MAX_TASK_ROWS, E)).Interior
+     
+        .Color = RGB(223, 247, 253)
+     
+     
+     End With
+ 
+ End If
+
+ chkdate = Format(Cells(ThisWorkbook.GST_ROW + 1, E), "yyyy/m/d")
+
+ yystr = Format(Cells(ThisWorkbook.GST_ROW + 1, E), "yyyy")
+
+ arr_index = Val(yystr) - 2015
+
+ For f = 1 To 21
+ 
+    If arr(arr_index, f) = chkdate Then
+    
+       With Range(Cells(ThisWorkbook.GST_ROW + 3, E), Cells(ThisWorkbook.MAX_TASK_ROWS, E)).Interior
+     
+        .Color = RGB(255, 217, 242)
+     
+      End With
+    
+       If Weekday(CDate(chkdate)) = vbSunday Then
+          With Range(Cells(ThisWorkbook.GST_ROW + 3, E + 1), Cells(ThisWorkbook.MAX_TASK_ROWS, E + 1)).Interior
+     
+          .Color = RGB(255, 217, 242)
+     
+      End With
+      
+      
+       End If
+      
+      
+      Exit For
+    
+    End If
+ 
+ Next
+
+
+
+
+
+Next
+
+Application.ScreenUpdating = True
+
+
+
+End Sub
