@@ -1,0 +1,31 @@
+Sub inazuma_delete()
+
+'*****************************************************************************
+'*プロシージャ：inazuma_delete
+'* 稲妻線の削除
+'*
+'*
+'*****************************************************************************
+ Call log_write(3, "inazuma_delete start")
+
+
+allshape_cnt = ActiveSheet.Shapes.Count
+
+Call log_write(3, "inazuma_delete(" & allshape_cnt & ") Execute")
+
+
+For u = allshape_cnt To 1 Step -1
+    
+     shpname = Mid(ActiveSheet.Shapes(u).Name, 1, 7)
+    
+    
+    
+    If shpname = "INAZUMA" Then
+     ActiveSheet.Shapes(u).Delete
+   End If
+Next
+
+
+
+Call log_write(3, "inazuma_delete end")
+End Sub
