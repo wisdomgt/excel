@@ -1,0 +1,20 @@
+Sub all_shape_delete(shapecnt As Integer)
+Call log_write(3, "all_shape_delete start shapecount=" & shapecnt)
+
+'*****************************************************************************
+'*プロシージャ：all_shape_delete(shapecount As Integer)
+'* 全ての図形の削除
+'* AutoShapeの長方形図形(msoShapeRectangle)とコネクターを削除
+'*
+'*****************************************************************************
+Call log_write(3, "all_shape_delete(" & shapecnt & ") Execute")
+
+For r = shapecnt To 1 Step -1
+   ' If ActiveSheet.Shapes(r).AutoShapeType = msoShapeRectangle Or ActiveSheet.Shapes.Item(r).Connector = True Then
+   ' If ActiveSheet.Shapes(r).AutoShapeType = msoShapeChevron Or ActiveSheet.Shapes.Item(r).Connector = True Then
+    If ActiveSheet.Shapes(r).AutoShapeType = msoShapePentagon Or ActiveSheet.Shapes(r).AutoShapeType = msoShapeRectangle Or ActiveSheet.Shapes(r).AutoShapeType = msoShape5pointStar Or ActiveSheet.Shapes(r).AutoShapeType = msoShapeIsoscelesTriangle Or ActiveSheet.Shapes.Item(r).Connector = True Then
+     ActiveSheet.Shapes(r).Delete
+   End If
+Next
+
+End Sub
