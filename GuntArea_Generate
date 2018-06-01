@@ -1,0 +1,44 @@
+Sub GuntArea_Generate(ByVal control As IRibbonControl)
+'***********************************************************************************
+'* Procedure：Guntsheet_add()
+'*  処理内容：チャート領域初期化ボタンを押したときの処理
+'*  引き数  ：
+'*
+'***********************************************************************************
+ On Error GoTo AREA_INIT_ERROR
+ 
+ Call ThisWorkbook.event_switch(False)
+ 
+ 
+ 
+ Call val_initialize
+ 
+ UserForm2.Show
+ If UserForm2.SET_FLG = False Then
+    Unload UserForm2
+    
+    Exit Sub
+ End If
+ Unload UserForm2
+ Call val_initialize
+ 
+ Call ThisWorkbook.Area_Gen
+ 
+ 
+ Call ThisWorkbook.Gunt_gen
+ 
+ 
+ Call ThisWorkbook.pre_task_connect
+ 
+
+ MsgBox ("タスクチャート表示領域を再設定しました。")
+ Call ThisWorkbook.event_switch(True)
+ 
+ Exit Sub
+ 
+AREA_INIT_ERROR:
+ Err.Clear
+ MsgBox "例外エラーが発生しました!"
+ 
+
+End Sub
