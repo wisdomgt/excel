@@ -1,0 +1,28 @@
+Sub duplicate_chk()
+Call log_write(3, "Sub duplicate_chk start")
+'***********************************************************************************
+'* Procedure：duplicate_chk
+'*  処理内容：タスクIDの重複チェックを行う
+'*
+'*
+'***********************************************************************************
+
+For i = GST_ROW + 2 To MAX_TASK_ROWS
+
+
+    For j = GST_ROW + 2 To MAX_TASK_ROWS
+
+      If i <> j Then
+        
+        If Cells(i, TASK_ID_COLUMN) = Cells(j, TASK_ID_COLUMN) Then
+          If Range("err_view_flg").Value = "On" Then
+           Cells(i, TASK_ID_COLUMN).Interior.Color = RGB(255, 204, 204)
+          End If
+           Call log_write(2, "タスクIDが重複しています[" & Cells(i, TASK_ID_COLUMN) & "] " & i & " 行目")
+           Exit For
+        End If
+      End If
+    Next
+    
+Next
+End Sub
