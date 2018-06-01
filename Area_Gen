@@ -1,0 +1,397 @@
+Sub Area_Gen()
+Call log_write(3, "Sub Area_Gen start")
+
+
+W0 = Timer
+
+'*****************************************************************************
+'*プロシージャ：Area_Gen()
+'* ①ガントチャート領域の生成
+'*　入力領域とガントチャート描画領域を初期化する
+'*
+'*****************************************************************************
+
+On Error GoTo ERROR_OCCURED
+
+If ActiveSheet.Range("task_id").Column > 0 Then
+
+ GoTo CONT
+
+End If
+
+ 
+CONT:
+
+'Call event_switch(False)
+W1 = Timer 'debug
+
+
+'Debug.Print " W1 value Initialize " & Format((Timer - W1), "0.0000") & "秒"
+
+
+
+'行の高さのセット
+W1_2 = Timer
+
+ROW_HEIGHT = Range("taskrow_hight").Value
+toprow = GST_ROW + 3
+bottomrow = MAX_TASK_ROWS
+Rows(toprow & ":" & bottomrow).RowHeight = ROW_HEIGHT
+
+'Debug.Print " W1_2 Row Height Setting" & Format((Timer - W1_2), "0.0000") & "秒"
+
+Application.ScreenUpdating = False
+
+ 'Line Format Reset
+ 
+ W2 = Timer
+ 
+ '罫線クリアー
+' With Range(Cells(GST_ROW + 3, Range("task_id").Column), Cells(LIMIT_TASK_ROWS + GST_ROW + 1, GST_COLUMN - 1))
+ With Range(Cells(GST_ROW + 3, Range("task_id").Column - 1), Cells(LIMIT_TASK_ROWS + GST_ROW + 1, GST_COLUMN - 1))
+    
+    .Borders(xlEdgeLeft).LineStyle = xlNone
+    .Borders(xlEdgeTop).LineStyle = xlNone
+    .Borders(xlEdgeBottom).LineStyle = xlNone
+    .Borders(xlEdgeRight).LineStyle = xlNone
+    .Borders(xlInsideVertical).LineStyle = xlNone
+    .Borders(xlInsideHorizontal).LineStyle = xlNone
+ End With
+ '罫線引き直し
+ 'With Range(Cells(GST_ROW + 3, Range("task_id").Column), Cells(MAX_TASK_ROWS, GST_COLUMN - 1))
+ With Range(Cells(GST_ROW + 3, Range("task_id").Column - 1), Cells(MAX_TASK_ROWS, GST_COLUMN - 1))
+    .Borders(xlDiagonalDown).LineStyle = xlNone
+    .Borders(xlDiagonalUp).LineStyle = xlNone
+    
+    .Borders.LineStyle = xlContinuous
+    .Borders.ColorIndex = 0
+    .Borders.TintAndShade = 0
+ 
+    
+    With .Borders(xlEdgeLeft)
+        .Weight = xlThin
+    End With
+    With .Borders(xlEdgeTop)
+        .Weight = xlThin
+    End With
+    With .Borders(xlEdgeBottom)
+        .Weight = xlThin
+    End With
+    With .Borders(xlEdgeRight)
+        .Weight = xlThin
+    End With
+ End With
+ 
+ 'Debug.Print " W2 Input Area Line" & Format((Timer - W2), "0.0000") & "秒"
+ 
+  W3 = Timer
+'  With Range(Cells(GST_ROW + 3, Range("task_id").Column), Cells(MAX_TASK_ROWS, GST_COLUMN - 1))
+  With Range(Cells(GST_ROW + 3, Range("task_id").Column - 1), Cells(MAX_TASK_ROWS, GST_COLUMN - 1))
+    
+    .Borders.LineStyle = xlContinuous
+    .Borders.ColorIndex = 0
+    .Borders.TintAndShade = 0
+ 
+    
+    With .Borders(xlEdgeTop)
+        .Weight = xlThin
+    End With
+    With .Borders(xlInsideHorizontal)
+        .Weight = xlHairline
+    End With
+  
+  End With
+  
+  With Range(Cells(GST_ROW + 3, Range("task_id").Column + 1), Cells(ThisWorkbook.LIMIT_TASK_ROWS, GST_COLUMN - 1))
+  .Interior.Color = RGB(255, 255, 255)
+ 
+  End With
+  
+  
+  taskname_scol = Range("task_id").Column + 1
+  taskname_ecol = Range("pre_task_id").Column - 1
+  
+  
+  With Range(Cells(GST_ROW + 3, taskname_scol), Cells(MAX_TASK_ROWS, taskname_ecol))
+    .Borders(xlInsideVertical).LineStyle = xlNone
+  End With
+  
+'Debug.Print " W3 Inside Line " & Format((Timer - W3), "0.0000") & "秒"
+  
+    
+
+'****** Area Initialize ******
+ 
+W3_2 = Timer
+ 
+'***************************************************************************
+'*   ガントチャート領域のクリアー
+'***************************************************************************
+
+ ActiveSheet.Range(GST_CELL, "AZZ10014").Delete
+
+'ガントエリアのセル幅セット
+Range(GST_CELL, GED_CELL).ColumnWidth = CELL_WIDTH
+
+'Debug.Print " W3_2 Gunt Area Delete & Cell width Set " & Format((Timer - W3_2), "0.0000") & "秒"
+
+'罫線
+W4 = Timer
+
+With Range(GST_CELL, Cells(MAX_TASK_ROWS, GED_COLUMN))
+'    .Borders.LineStyle = xlContinuous
+'    .Borders.ColorIndex = 0
+'    .Borders.TintAndShade = 0
+    With .Borders(xlEdgeTop)
+        .Weight = xlThin
+    End With
+    With .Borders(xlEdgeBottom)
+        .Weight = xlThin
+    End With
+    With .Borders(xlEdgeRight)
+        .Weight = xlThin
+    End With
+
+    With .Borders(xlInsideHorizontal)
+        .ColorIndex = 16
+        .Weight = xlHairline
+    End With
+
+'    With .Borders(xlInsideVertical)
+'        .ColorIndex = 16
+'        .Weight = xlHairline
+'    End With
+    
+End With
+
+With Range(GST_CELL, Cells(ThisWorkbook.GST_ROW + 2, GED_COLUMN))
+
+    .Borders.LineStyle = xlContinuous
+    .Borders.ColorIndex = 0
+    .Borders.TintAndShade = 0
+    
+    With .Borders(xlEdgeBottom)
+        .Weight = xlThin
+    End With
+End With
+
+With Range(GST_CELL, Cells(GST_ROW + 1, GED_COLUMN))
+    
+    .Borders.LineStyle = xlContinuous
+    .Borders.ColorIndex = 0
+    .Borders.TintAndShade = 0
+
+
+    With .Borders(xlEdgeBottom)
+        .Weight = xlThin
+    End With
+    
+'    With .Borders(xlInsideHorizontal)
+'        .Weight = xlThin
+'    End With
+'    With .Borders(xlInsideVertical)
+'        .Weight = xlThin
+'    End With
+
+End With
+
+
+'Debug.Print " W4 guntarea line " & Format((Timer - W4), "0.0000") & "秒"
+
+W5 = Timer
+ With Range(Cells(GST_ROW, GST_DATE_COLUMN), Cells(MAX_TASK_ROWS, GED_COLUMN))
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .WrapText = False
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+    
+'    With .Borders(xlEdgeRight)
+'         .LineStyle = xlContinuous
+'         .ColorIndex = 0
+'         .TintAndShade = 0
+        '.Weight = xlThin
+'    End With
+End With
+
+For i = 0 To SCH_DAYS
+   
+    
+  curr_column = GST_COLUMN + i
+  
+  DDSTR = GUNT_START_DATE + i
+  
+  
+  Weekday (DDSTR)
+  
+  
+  
+    
+  If i = 0 Then
+   
+    Cells(GST_ROW, curr_column) = Format(DDSTR, "yyyy/mm")
+    month_start_column = curr_column
+    week_start_column = curr_column
+    
+  End If
+    
+' Cells(GST_ROW + 1, curr_column) = Format(DDSTR, "d")
+ Cells(GST_ROW + 1, curr_column) = DDSTR
+' Cells(GST_ROW + 1, curr_column).NumberFormatLocal = "DD"
+ 
+If ThisWorkbook.SCH_DAYS < 93 Then                                      '日割り表示のとき
+  If curr_column <> ThisWorkbook.GST_COLUMN Then
+  
+   With Range(Cells(ThisWorkbook.GST_ROW + 2, curr_column), Cells(ThisWorkbook.MAX_TASK_ROWS, curr_column))
+         With .Borders(xlEdgeLeft)
+               .LineStyle = xlContinuous
+               .ColorIndex = 0
+               .TintAndShade = 0
+               .ColorIndex = 16
+               .Weight = xlHairline
+         End With
+   End With
+  End If
+  Cells(GST_ROW + 2, curr_column) = DDSTR
+  Cells(GST_ROW + 2, curr_column).NumberFormatLocal = "D"
+Else                                                                    '週割り表示のとき
+   If Weekday(DDSTR) = 2 Then
+        week_start_column = curr_column
+        
+        If week_start_column <> ThisWorkbook.GST_COLUMN Then
+        
+        
+            With Range(Cells(ThisWorkbook.GST_ROW + 2, curr_column), Cells(ThisWorkbook.MAX_TASK_ROWS, curr_column))
+                With .Borders(xlEdgeLeft)
+                    .LineStyle = xlContinuous
+                    .TintAndShade = 0
+                    .ColorIndex = 16
+                    .Weight = xlHairline
+                End With
+         
+            End With
+        
+        End If
+     Cells(GST_ROW + 2, curr_column) = DDSTR
+     Cells(GST_ROW + 2, curr_column).NumberFormatLocal = "D"
+     
+   End If
+   
+   If Weekday(DDSTR) = 1 Then                                                       '週表示ヘッダーセルをマージする
+   
+        With Range(Cells(ThisWorkbook.GST_ROW + 2, week_start_column), Cells(ThisWorkbook.GST_ROW + 2, curr_column))
+             .Merge
+        End With
+        Cells(ThisWorkbook.GST_ROW + 2, week_start_column).HorizontalAlignment = xlLeft
+   End If
+End If
+    
+'  月代わりで実線を引く
+    
+    
+If Format(DDSTR, "d") = 1 Then
+  
+   If curr_column <> ThisWorkbook.GST_COLUMN Then
+
+       Range(Cells(GST_ROW, month_start_column), Cells(GST_ROW, curr_column - 1)).Merge
+       month_start_column = curr_column
+      With Range(Cells(ThisWorkbook.GST_ROW, curr_column - 1), Cells(ThisWorkbook.MAX_TASK_ROWS, curr_column - 1))
+         With .Borders(xlEdgeRight)
+               .LineStyle = xlContinuous
+               .ColorIndex = 0
+               .TintAndShade = 0
+               .Weight = xlThin
+        End With
+      End With
+   End If
+   
+   
+   If ThisWorkbook.SCH_DAYS > 93 Then
+       
+'    With Range(Cells(ThisWorkbook.GST_ROW + 2, curr_column - 1), Cells(ThisWorkbook.GST_ROW + 2, curr_column - 1))
+'         With .Borders(xlEdgeRight)
+'               .LineStyle = xlNone
+'
+'        End With
+'
+'    End With
+   
+   End If
+   
+  Cells(GST_ROW, curr_column) = Format(DDSTR, "yyyy/mm")
+  month_start_column = curr_column
+   
+End If
+
+    
+ wdstr = Weekday(DDSTR)
+    
+ Select Case wdstr
+ 
+    Case 1
+        Cells(GST_ROW + 1, curr_column).Font.Color = RGB(255, 0, 0)
+    Case 7
+        Cells(GST_ROW + 1, curr_column).Font.Color = RGB(0, 0, 255)
+ End Select
+    
+Next
+  
+  
+  
+  Range(Cells(GST_ROW, month_start_column), Cells(GST_ROW, curr_column)).Merge
+  
+  
+  If ThisWorkbook.SCH_DAYS > 93 Then
+  
+   Range(Cells(ThisWorkbook.GST_ROW + 2, week_start_column), Cells(ThisWorkbook.GST_ROW + 2, curr_column)).Merge
+  End If
+'Debug.Print "W5 guntarea_gen Loop " & Format((Timer - W5), "0.0000") & "秒"
+
+W6 = Timer
+      
+     '-------------------------------性能検証
+
+
+
+ActiveSheet.Cells(1, Range("task_id").Column).Select
+
+'Call event_switch(True)
+Application.ScreenUpdating = True
+
+
+If Range("holiday_flg") = "On" Then
+
+    
+   Call ThisWorkbook.holiday_view
+   
+    
+
+End If
+
+'Debug.Print "W6 Time merg Last " & Format((Timer - W6), "0.0000") & "秒"
+
+
+Debug.Print "W0 guntarea_gen eraps " & Format((Timer - W0), "0.0000") & "秒"
+
+'MsgBox ("タスクチャート表示領域の初期化が完了しました。")
+
+Exit Sub
+
+ERROR_OCCURED:
+' Call event_switch(True)
+ Err.Clear
+Call log_write(1, "例外エラーが発生しました")
+ 
+Application.ScreenUpdating = True
+
+MsgBox "例外エラーが発生しました"
+
+
+
+
+
+End Sub
