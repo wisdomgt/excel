@@ -1,0 +1,43 @@
+Sub val_sheet_get()
+
+Call log_write(3, "val_sheet_get start")
+
+ThisWorkbook.GED_COLUMN = Cells(ThisWorkbook.GST_ROW + 1, ActiveSheet.Columns.Count).End(xlToLeft).Column
+
+
+'ThisWorkbook.BASE_AREA = (GED_COLUMN - (ThisWorkbook.GST_COLUMN - 1)) / 6
+
+
+'time_start_value = Cells(ThisWorkbook.GST_ROW + 1, ActiveSheet.Range("gunt_draw_start_col").Column)
+
+date_start_value = Cells(ThisWorkbook.GST_ROW + 1, ActiveSheet.Range("gunt_draw_start_col").Column)
+
+yystr = Format(date_start_value, "yyyy")
+mmstr = Format(date_start_value, "m")
+DDSTR = Format(date_start_value, "d")
+
+
+
+
+ThisWorkbook.GUNT_START_DATE = date_start_value
+
+ThisWorkbook.GUNT_END_DATE = Cells(ThisWorkbook.GST_ROW + 1, ActiveSheet.Columns.Count).End(xlToLeft)
+
+
+ThisWorkbook.CELL_WIDTH = Cells(GST_ROW + 2, GST_COLUMN).Width
+
+Select Case ThisWorkbook.CELL_WIDTH
+     
+    Case 5.25
+       ThisWorkbook.ONE_DAY_DOT = 0.525
+ 
+    Case 9.75
+       ThisWorkbook.ONE_DAY_DOT = 0.975
+
+    Case 12.75
+       ThisWorkbook.ONE_DAY_DOT = 1.275
+    
+End Select
+
+
+End Sub
