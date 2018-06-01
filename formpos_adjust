@@ -1,0 +1,14 @@
+Sub formpos_adjust()
+Call log_write(3, "formpos_adjust start")
+'*****************************************************************************
+'*プロシージャ：formpos_adjust
+'* ログビュー(UserForm)の表示位置を設定する処理（BOOKの右下へ配置する）
+'*引数：なし
+'*
+'*****************************************************************************
+
+UserForm1.Left = Application.Left + Application.Width - UserForm1.Width
+UserForm1.Top = Application.Top + Application.Height - UserForm1.Height
+
+
+End Sub
