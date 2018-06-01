@@ -1,0 +1,34 @@
+Sub line_interval(tspan As Integer)
+Call log_write(3, "line_interval start")
+'*****************************************************************************
+'*プロシージャ：line_interval(tspan As Integer)
+'* 罫線の間隔設定
+'*
+'*
+'*****************************************************************************
+
+  loop_start_col = ThisWorkbook.GST_COLUMN
+  loop_end_col = ThisWorkbook.GED_COLUMN
+  
+  For i = loop_start_col To loop_end_col
+  
+    With Range(Cells(GST_ROW + 2, i), Cells(MAX_TASK_ROWS, i + (tspan - 1)))
+            
+        With .Borders(xlInsideVertical)
+             .LineStyle = xlNone
+        
+        End With
+    End With
+       
+       
+    i = i + (tspan - 1)
+  
+  
+  
+  Next
+
+
+
+
+
+End Sub
