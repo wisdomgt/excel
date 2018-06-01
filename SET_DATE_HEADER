@@ -1,0 +1,35 @@
+ Sub SET_DATE_HEADER(GST_DATE_COLUMN, GED_COLUMN, BASE_DATE)
+ 
+ Call log_write(3, "SET_DATE_HEADER start")
+ 
+'*****************************************************************************
+'*プロシージャ：SET_DATE_HEADER(GST_DATE_COLUMN, GED_COLUMN, BASE_DATE)
+'* 日付セルの結合と日付のセットサブルーチン
+'*
+'*
+'*****************************************************************************
+
+ 
+      Cells(GST_ROW, GST_DATE_COLUMN) = Format(BASE_DATE, "m/d")
+      
+      With Range(Cells(GST_ROW, GST_DATE_COLUMN), Cells(GST_ROW, GED_COLUMN))
+'        .HorizontalAlignment = xlCenter
+'        .VerticalAlignment = xlCenter
+'        .WrapText = False
+'        .Orientation = 0
+'        .AddIndent = False
+'        .IndentLevel = 0
+'        .ShrinkToFit = False
+'        .ReadingOrder = xlContext
+'        .MergeCells = False
+        .Merge
+      End With
+      
+      
+       GST_DATE_COLUMN = GED_COLUMN + 1
+       
+       BASE_DATE = BASE_DATE + 1
+
+
+
+End Sub
