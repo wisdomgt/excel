@@ -1,0 +1,64 @@
+Sub pre_task_connect()
+Call log_write(3, "pre_task_connect start")
+'*****************************************************************************
+'*プロシージャ：pre_task_connect()
+'* 先行タスクとコネクタを接続する
+'*
+'*
+'*****************************************************************************
+  Dim PRE_TASK_SHAPE As String
+  Dim CURR_TASK_SHAPE As String
+  Application.ScreenUpdating = False          '画面の更新抑止設定
+  For m = ThisWorkbook.GST_ROW + 2 To ThisWorkbook.MAX_TASK_ROWS
+
+      CURR_TASK_SHAPE = "task_plan_" & Cells(m, TASK_ID_COLUMN)
+      
+    If srch_task(CURR_TASK_SHAPE) = True Then
+      
+
+      If Cells(m, Range("pre_task_id").Column) <> "" Then                                  '****先行タスクがある場合の処理
+         
+            pretask_arr = Split(Cells(m, Range("pre_task_id").Column), ",")                    '先行タスクの番号を分割してアレイ変数へ格納
+            
+            pretask_count = UBound(pretask_arr)                      'アレイ変数内の値の個数をカウント
+                      
+           
+            For p = 0 To pretask_count                               '先行タスクの数分ループしてコネクターを接続する
+            
+                PRE_TASK_SHAPE = "task_plan_" & pretask_arr(p)          '先行タスクのガントバー名称をセット
+            
+                If srch_task(PRE_TASK_SHAPE) = True Then                '*****ガントバーが存在するかの確認
+            
+                                                                    
+                    Set shapecon = ActiveSheet.Shapes.AddConnector(msoConnectorElbow, 1, 1, 1, 1)   'コネクター結合インスタンス生成
+                                                                    
+                    With shapecon                                                                     'コネクタ結合と線の書式設定
+               
+                        .ConnectorFormat.BeginConnect ActiveSheet.Shapes(PRE_TASK_SHAPE), 4
+                        .ConnectorFormat.EndConnect ActiveSheet.Shapes(CURR_TASK_SHAPE), 2
+                        .Line.Weight = 1#
+                        .Line.DashStyle = msoLineDash
+                        .Line.BeginArrowheadStyle = msoArrowheadDiamond
+                        .Line.EndArrowheadStyle = msoArrowheadTriangle
+                        .Line.EndArrowheadStyle = msoArrowheadStealth
+                        .Line.ForeColor.RGB = RGB(7, 8, 255)
+                        .Line.ForeColor.TintAndShade = 0
+                        .Line.ForeColor.Brightness = 0.349999994
+                        .Name = "CONN_" & pretask_arr(p) & "_" & Cells(m, TASK_ID_COLUMN)
+                    End With
+            
+                Else                                                    '*****
+            
+                    Call log_write(2, "先行タスクのガントバーが存在しません[" & PRE_TASK_SHAPE & "] (" & m & "行目)")
+                    If Range("err_view_flg").Value = "On" Then
+                     Cells(m, Range("pre_task_id").Column).Interior.Color = RGB(255, 204, 204)
+                    End If
+                End If                                                  '*****ガントバーが存在するかの確認(終了)
+            Next                    '先行タスクの数分ループしてコネクターを接続する(終了)
+         End If                                                         '****先行タスクがある場合の処理（終了）
+                                                                 '
+     End If
+Next
+Application.ScreenUpdating = True          '画面の更新抑止設定
+
+End Sub
