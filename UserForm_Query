@@ -1,0 +1,17 @@
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+
+
+
+If CloseMode = 0 Then
+
+' Cancel = True
+
+ UserForm1.Hide
+ 
+ Call ThisWorkbook.log_write(3, "ログを非表示にしました")
+
+ 'Unload UserForm1
+
+End If
+
+End Sub
