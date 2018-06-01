@@ -1,0 +1,40 @@
+Sub holiday_chk(ByVal control As IRibbonControl)
+
+'*****************************************************************************
+'*Function holiday_chk
+'*
+'* 祝祭日チェック
+'*
+'*
+'*****************************************************************************
+
+Call ThisWorkbook.val_initialize
+
+
+If Range("holiday_flg") = "On" Then
+
+   Range("holiday_flg") = "Off"
+
+   last_col = Cells(ThisWorkbook.GST_ROW + 1, ActiveSheet.Columns.Count).End(xlToLeft).Column
+
+  Application.ScreenUpdating = False
+  With Range(Cells(ThisWorkbook.GST_ROW + 3, ThisWorkbook.GST_COLUMN), Cells(ThisWorkbook.MAX_TASK_ROWS, last_col))
+    
+    .Interior.Color = RGB(255, 255, 255)
+    
+  End With
+  Application.ScreenUpdating = True
+
+Else
+
+Range("holiday_flg") = "On"
+
+Call ThisWorkbook.holiday_view
+
+
+End If
+
+
+
+
+End Sub
