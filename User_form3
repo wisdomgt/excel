@@ -1,0 +1,187 @@
+Public SET_FLG As Boolean
+
+Private Sub ComboBox3_Change()
+Call ThisWorkbook.log_write(3, "Sub ComboBox3_Change start")
+'*****************************************************************************
+'*プロシージャ：ComboBox3_Change()
+'* 年の指定に変更があったときの処理
+'*
+'*
+'*****************************************************************************
+
+If ComboBox4.Text <> "" And ComboBox3.Text <> "" And ComboBox5.Text <> "" Then
+
+dcnt = Day(DateSerial(Val(ComboBox3.Text), Val(ComboBox4.Text) + 1, 0))
+
+
+For i = 1 To dcnt
+   ComboBox5.AddItem i
+Next
+
+ComboBox5.Text = ComboBox5.List(0)
+
+End If
+
+End Sub
+
+Private Sub ComboBox4_Change()
+Call ThisWorkbook.log_write(3, "Sub ComboBox4_Change start")
+'*****************************************************************************
+'*プロシージャ：ComboBox4_Change()
+'* 月の指定に変更があったときの処理
+'*
+'*
+'*****************************************************************************
+
+If ComboBox4.Text <> "" And ComboBox3.Text <> "" And ComboBox5.Text <> "" Then
+    
+dcnt = Day(DateSerial(Val(ComboBox3.Text), Val(ComboBox4.Text) + 1, 0))
+
+
+
+For i = 1 To dcnt
+   ComboBox5.AddItem i
+Next
+
+ComboBox5.Text = ComboBox5.List(0)
+
+End If
+
+End Sub
+
+Private Sub CommandButton2_Click()
+Call ThisWorkbook.log_write(3, "Sub CommandButton2_Click start")
+'*****************************************************************************
+'*プロシージャ：CommandButton2_Click()
+'* Cancelボタンが押されたときの処理
+'*
+'*
+'*****************************************************************************
+    UserForm3.Hide
+    
+  '  Unload UserForm2
+     UserForm3.SET_FLG = False
+
+End Sub
+Private Sub CommandButton1_Click()
+Call ThisWorkbook.log_write(3, "Sub CommandButton1_Click start")
+'*****************************************************************************
+'*プロシージャ：CommandButton1_Click()
+'* OKボタンが押されたときの処理
+'*
+'*
+'*****************************************************************************
+    UserForm3.Hide
+    
+    UserForm3.SET_FLG = True
+    
+    ThisWorkbook.INAZUMA_BASE_DATE = CDate(UserForm3.ComboBox3.Text & "/" & UserForm3.ComboBox4.Text & "/" & UserForm3.ComboBox5.Text)
+    
+    Range("inazuma_date") = ThisWorkbook.INAZUMA_BASE_DATE
+    
+    
+    
+End Sub
+
+
+
+
+
+
+
+
+Private Sub UserForm_Initialize()
+Call ThisWorkbook.log_write(3, "Sub UserForm3_Initialize start")
+'*****************************************************************************
+'*プロシージャ：Sub UserForm_Initialize()
+'* 設定フォームの初期値設定
+'*
+'*
+'*****************************************************************************
+
+Dim time_value As String
+
+
+
+'Call ThisWorkbook.val_initialize
+
+
+
+
+date_value = Format(Now(), "yyyy/m/d")
+
+yystr = Format(date_value, "yyyy")
+mmstr = Format(date_value, "m")
+DDSTR = Format(date_value, "d")
+
+
+'開始西暦年
+ystr = Format(Now(), "yyyy")
+ystr = ystr - 1
+
+For i = 1 To 3
+   ComboBox3.AddItem ystr
+   ystr = ystr + 1
+Next
+
+srch_flg = False
+For i = 0 To ComboBox3.ListCount - 1
+
+    If ComboBox3.List(i) = yystr Then
+       ComboBox3.Text = ComboBox3.List(i)
+       srch_flg = True
+       Exit For
+    End If
+Next
+If srch_flg = False Then
+   ComboBox3.Text = ComboBox3.List(1)
+End If
+   
+
+'月
+
+
+For i = 1 To 12
+   ComboBox4.AddItem i
+Next
+mstr = Format(Now(), "m")
+
+lidx = mstr - 1
+
+srch_flg = False
+For i = 0 To ComboBox4.ListCount - 1
+
+    If ComboBox4.List(i) = mmstr Then
+       ComboBox4.Text = ComboBox4.List(i)
+       srch_flg = True
+       Exit For
+    End If
+Next
+If srch_flg = False Then
+   ComboBox4.Text = ComboBox4.List(lidx)
+End If
+
+dcnt = Day(DateSerial(ComboBox3.Text, ComboBox4.Text + 1, 1) - 1)
+
+For i = 1 To dcnt
+   ComboBox5.AddItem i
+Next
+dstr = Format(Now(), "d")
+
+lidx = dstr - 1
+
+srch_flg = False
+For i = 0 To ComboBox5.ListCount - 1
+
+    If ComboBox5.List(i) = DDSTR Then
+       ComboBox5.Text = ComboBox5.List(i)
+       srch_flg = True
+       Exit For
+    End If
+Next
+If srch_flg = False Then
+   ComboBox5.Text = ComboBox5.List(lidx)
+End If
+
+
+End Sub
