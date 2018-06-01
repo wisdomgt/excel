@@ -1,0 +1,63 @@
+Public Sub log_write(mtype As Integer, log_message As String)
+
+'*****************************************************************************
+'*プロシージャ：log_write(mtype,log_message)
+'* ログビューにメッセージを出力する処理
+'*引数１：mtype integer（1:Error 2:Warning 3:Infomation）
+'*引数２：log_message String 出力メッセージ文字列
+'*
+'*****************************************************************************
+
+If UserForm1.Visible = True Then
+
+
+
+    Select Case mtype
+        Case 1
+            emtyp_str = " 【Error】 "
+    
+        Case 2
+            emtyp_str = " 【Warn】 "
+    
+        Case 3
+            emtyp_str = " 【Info】 "
+        Case Else
+            emtyp_str = " 【Other】 "
+
+    End Select
+
+logmsg_str = Format(Now(), "yyyy-mm-dd hh:mm:ss") & " Worksheets(" & ThisWorkbook.ActiveSheet.Name & ") " & " " & log_message & vbCrLf                        '各タブ向けのメッセージ文字列
+all_logmsg_str = Format(Now(), "yyyy-mm-dd hh:mm:ss") & " Worksheets(" & ThisWorkbook.ActiveSheet.Name & ") " & " " & mtype_str & log_message & vbCrLf        'ALLタブ向けのメッセージ文字列
+
+
+'    logmsg_str = Format(Now(), "yyyy-mm-dd hh:mm:ss") & " " & log_message & vbCrLf                        '各タブ向けのメッセージ文字列
+'    all_logmsg_str = Format(Now(), "yyyy-mm-dd hh:mm:ss") & " " & mtype_str & log_message & vbCrLf         'ALLタブ向けのメッセージ文字列
+
+
+
+    If mtype = 1 Then                               'Errorタブ向けのメッセージ出力
+        With UserForm1.TextBox1
+              .Text = .Text & logmsg_str
+        End With
+    End If
+
+    If mtype = 2 Then                               'Warnタブ向けのメッセージ出力
+         With UserForm1.TextBox2
+              .Text = .Text & logmsg_str
+        End With
+    End If
+
+    If mtype = 3 Then                               'Infoタブ向けのメッセージ出力
+        With UserForm1.TextBox3
+             .Text = .Text & logmsg_str
+    End With
+    End If
+
+    With UserForm1.TextBox4                         'ALLタブ向けのメッセージ出力
+        .Text = .Text & all_logmsg_str
+    End With
+     
+     
+    UserForm1.MultiPage1.Value = 3                  'ALLタブを選択した状態にする
+End If
+End Sub
