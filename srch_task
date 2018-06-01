@@ -1,0 +1,25 @@
+Public Function srch_task(gunt_shape_name As String) As Boolean
+'***********************************************************************************
+'* Function Name：srch_task
+'*  処理内容：指定した名称のガントバーが存在するかをチェックする関数
+'*  引き数  ：ガントバーの名称（shapeの名前） type：string
+'*  返り値  ：Boolean（True：図形が存在する False：図形が存在しない）
+'***********************************************************************************
+Call log_write(3, "srch_task(" & gunt_shape_name & ") Execute")
+
+       Dim objshape As Shape
+       
+       On Error GoTo NO_SHAPE
+       
+         If IsObject(ActiveSheet.Shapes(gunt_shape_name)) Then
+            srch_task = True
+         End If
+         
+         Exit Function
+
+NO_SHAPE:
+       Call log_write(2, "図形が見つかりません｢" & gunt_shape_name & "｣")
+       srch_task = False
+       Err.Clear
+       
+End Function
