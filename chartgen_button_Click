@@ -1,0 +1,21 @@
+Sub chartgen_button_Click(ByVal control As IRibbonControl)
+'***********************************************************************************
+'* Procedure：chartgen_button_Click
+'*  処理内容：リボンの全チャート再描画を押したときの処理
+'*  引き数  ：
+'*
+'***********************************************************************************
+Call log_write(3, "chartgen_button_Click() Execute")
+
+Call val_initialize
+
+Call Gunt_gen
+
+Call pre_task_connect
+
+
+If ThisWorkbook.GUNT_DRAW_RESULT = True Then
+    MsgBox ("ガントチャートの作成が完了しました。")
+End If
+
+End Sub
