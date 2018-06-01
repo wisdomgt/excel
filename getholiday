@@ -1,0 +1,20 @@
+Function getholiday(tyear As Integer, tmonth As Integer, tweekday As VbDayOfWeek, weeknum As Integer) As Date
+
+
+
+Dim firstwday As Integer
+Dim diff_wday As Integer
+
+firstwday = Weekday(DateSerial(tyear, tmonth, 1))
+
+diff_wday = tweekday - firstwday
+If firstwday > tweekday Then
+  diff_wday = diff_wday + 7
+
+End If
+
+
+getholiday = DateSerial(tyear, tmonth, 1 + diff_wday + 7 * (weeknum - 1))
+
+
+End Function
