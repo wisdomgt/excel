@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+-<customUI xmlns="http://schemas.microsoft.com/office/2006/01/customui">
+
+
+-<ribbon>
+
+
+-<tabs>
+
+
+-<tab label="ガントチャート" id="CustomTab">
+
+
+-<group label="チャート新規作成" id="chartnew">
+
+<button label="新規シート作成" id="cahartnew_Button1" onAction="ThisWorkbook.Guntsheet_add" imageMso="FileNew" size="large"/>
+
+</group>
+
+
+-<group label="ガントチャート修正" id="chartmod">
+
+<button label="チャート領域初期化" id="chartmod_Button1" onAction="ThisWorkbook.GuntArea_Generate" imageMso="GridSettings" size="large"/>
+
+<button label="全チャート再描画" id="chartmod_Button2" onAction="ThisWorkbook.chartgen_button_Click" imageMso="ObjectsUngroup" size="large"/>
+
+</group>
+
+
+-<group label="オプション機能" id="guntoptions">
+
+<button label="イベント検知（有効/無効)" id="guntoptions_Button1" onAction="ThisWorkbook.enable_event" imageMso="HighImportance" size="large"/>
+
+<button label="ログ表示（デバッグ）" id="guntoptions_Button2" onAction="ThisWorkbook.form_show" imageMso="SlidesPerPageSlideOutline" size="large"/>
+
+<button label="入力エラー表示" id="guntoptions_Button3" onAction="ThisWorkbook.err_view_switch" imageMso="Errors" size="large"/>
+
+<button label="イナズマ線" id="guntoptions_Button4" onAction="ThisWorkbook.inazuma_add" imageMso="UMLEvents" size="large"/>
+
+<button label="休日表示切替" id="guntoptions_Button5" onAction="ThisWorkbook.holiday_chk" imageMso="CalendarsGallery" size="large"/>
+
+</group>
+
+</tab>
+
+</tabs>
+
+</ribbon>
+
+</customUI>
