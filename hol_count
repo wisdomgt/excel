@@ -1,0 +1,39 @@
+Function hol_count(stdate As Date, eddate As Date) As Integer
+
+'*****************************************************************************
+'*Function hol_count
+'*
+'* 休日日数カウント　draft
+'*
+'* 引き数：stadte 開始日付
+'* 引き数：eddate 終了日付
+'* 返り値：開始日付～終了日付間の休日日数
+'*
+'*****************************************************************************
+
+'開始～終了間の日数
+daycount = eddate - stdate
+
+'カウント日数初期化
+holcouont = 0  '休日日数
+wkdycount = 0  '平日日数
+
+For i = 0 To daycount
+
+ tday = stdate + i
+ 
+ '土曜と日曜ならば休日日数にカウントアップ
+ If Weekday(tday) = 7 Or Weekday(tday) = 1 Then
+ 
+   holcount = holcount + 1
+ 
+ End If
+Next
+
+wkdycount = daycount - holcount '使用しないが日数を計算しておく
+
+'一旦、休日日数のみ返す仕様としておく
+
+hol_count = holcount
+
+End Function
