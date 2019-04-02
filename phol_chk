@@ -1,0 +1,41 @@
+Function phol_chk(chkdate As Date) As Boolean
+
+
+
+
+chkdate = Format(Cells(ThisWorkbook.GST_ROW + 1, E), "yyyy/m/d")
+
+ yystr = Format(Cells(ThisWorkbook.GST_ROW + 1, E), "yyyy")
+
+ arr_index = Val(yystr) - 2015
+
+ For f = 1 To 21
+ 
+    If arr(arr_index, f) = chkdate Then
+    
+       With Range(Cells(ThisWorkbook.GST_ROW + 3, E), Cells(ThisWorkbook.MAX_TASK_ROWS, E)).Interior
+     
+        .Color = RGB(255, 217, 242)
+     
+      End With
+    
+       If Weekday(CDate(chkdate)) = vbSunday Then
+          With Range(Cells(ThisWorkbook.GST_ROW + 3, E + 1), Cells(ThisWorkbook.MAX_TASK_ROWS, E + 1)).Interior
+     
+          .Color = RGB(255, 217, 242)
+     
+      End With
+      
+      
+       End If
+      
+      
+      Exit For
+    
+    End If
+ 
+ Next
+
+
+
+End Function
