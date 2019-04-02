@@ -26,3 +26,6 @@
  Public LINE_SPAN                  '罫線の間隔
  Public SCH_DAYS
  Public INAZUMA_BASE_DATE          'イナズマ線の基準日
+' Public arr(1 To 10, 1 To 21) As String
+ Public yydata As Integer
+ Public setdate As Date
